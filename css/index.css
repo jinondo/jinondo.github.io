@@ -1565,8 +1565,8 @@ pre .javascript .function {
 blockquote {
   margin: 0 0 1rem;
   padding: 0.1rem 0.8rem;
-  border-left: 0.2rem solid #a020f0;
-  background-color: rgba(160,32,240,0.1);
+  border-left: 0.2rem solid #ff3030;
+  background-color: rgba(255,48,48,0.1);
   color: #6a737d;
 }
 blockquote a {
