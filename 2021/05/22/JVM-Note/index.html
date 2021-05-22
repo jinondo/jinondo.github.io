@@ -1,0 +1,742 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>JVM-Notes | Jinondo's Blog</title><meta name="description" content="Interview JVMps: 本笔记记录宋红康JVM教程 虚拟机栈  每个栈帧中存储着： 局部变量表 Local Variables 操作数栈 Operand stack 动态链接 Dynamic Linking 方法返回地址 Return Address 一些附加信息   内部保存一个个栈帧，对应着一次次的java方法调用 作用：主管java程序的运行，它保存方法的局部变量（8种基本数据类型"><meta name="keywords" content="Java"><meta name="author" content="Jinondo"><meta name="copyright" content="Jinondo"><meta name="format-detection" content="telephone=no"><link rel="shortcut icon" href="/img/cytlogo.png"><link rel="canonical" href="https://jinondo.github.io/2021/05/22/JVM-Note/"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//fonts.googleapis.com" crossorigin="crossorigin"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta property="og:type" content="article"><meta property="og:title" content="JVM-Notes"><meta property="og:url" content="https://jinondo.github.io/2021/05/22/JVM-Note/"><meta property="og:site_name" content="Jinondo's Blog"><meta property="og:description" content="Interview JVMps: 本笔记记录宋红康JVM教程 虚拟机栈  每个栈帧中存储着： 局部变量表 Local Variables 操作数栈 Operand stack 动态链接 Dynamic Linking 方法返回地址 Return Address 一些附加信息   内部保存一个个栈帧，对应着一次次的java方法调用 作用：主管java程序的运行，它保存方法的局部变量（8种基本数据类型"><meta property="og:image" content="https://jinondo.github.io/img/default2.jpg"><meta property="article:published_time" content="2021-05-22T15:04:00.000Z"><meta property="article:modified_time" content="2021-05-22T15:06:33.909Z"><meta name="twitter:card" content="summary"><script>var activateDarkMode = function () {
+  document.documentElement.setAttribute('data-theme', 'dark')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#000')
+  }
+}
+var activateLightMode = function () {
+  document.documentElement.setAttribute('data-theme', 'light')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#fff')
+  }
+}
+
+var getCookies = function (name) {
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop().split(';').shift()
+}
+
+var autoChangeMode = 'false'
+var t = getCookies('theme')
+if (autoChangeMode === '1') {
+  var isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+  var isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+  var isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+  var hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+  if (t === undefined) {
+    if (isLightMode) activateLightMode()
+    else if (isDarkMode) activateDarkMode()
+    else if (isNotSpecified || hasNoSupport) {
+      console.log('You specified no preference for a color scheme or your browser does not support it. I Schedule dark mode during night time.')
+      var now = new Date()
+      var hour = now.getHours()
+      var isNight = hour <= 6 || hour >= 18
+      isNight ? activateDarkMode() : activateLightMode()
+    }
+    window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+      if (Cookies.get('theme') === undefined) {
+        e.matches ? activateDarkMode() : activateLightMode()
+      }
+    })
+  } else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else if (autoChangeMode === '2') {
+  now = new Date()
+  hour = now.getHours()
+  isNight = hour <= 6 || hour >= 18
+  if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+  else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else {
+  if (t === 'dark') activateDarkMode()
+  else if (t === 'light') activateLightMode()
+}</script><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css"><link rel="next" title="哈希表与字符串" href="https://jinondo.github.io/2021/03/03/%E5%93%88%E5%B8%8C%E8%A1%A8%E4%B8%8E%E5%AD%97%E7%AC%A6%E4%B8%B2/"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Titillium+Web&amp;display=swap"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  bookmark: {
+    message_prev: '按',
+    message_next: '键将本页加入书签'
+  },
+  runtime_unit: '天',
+  runtime: false,
+  copyright: undefined,
+  ClickShowText: {"text":"WDNMD,THE,END,OF,THE,FXXKING,WORLD","fontSize":"15px"},
+  medium_zoom: false,
+  fancybox: true,
+  Snackbar: undefined,
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  baiduPush: false,
+  highlightCopy: true,
+  highlightLang: true,
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isanchor: false    
+}</script><script>var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true
+  }</script><noscript><style>
+#nav {
+  opacity: 1
+}
+.justified-gallery img{
+  opacity: 1
+}
+</style></noscript><meta name="generator" content="Hexo 4.2.1"></head><body><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/cytAvatar.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">24</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">4</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down menus-expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div id="sidebar"><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Interview-JVM"><span class="toc-number">1.</span> <span class="toc-text">Interview JVM</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#虚拟机栈"><span class="toc-number">1.1.</span> <span class="toc-text">虚拟机栈</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#局部变量表"><span class="toc-number">1.1.1.</span> <span class="toc-text">局部变量表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#栈中可能会出现的异常"><span class="toc-number">1.1.2.</span> <span class="toc-text">栈中可能会出现的异常</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#动态链接"><span class="toc-number">1.1.3.</span> <span class="toc-text">动态链接</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#堆"><span class="toc-number">1.2.</span> <span class="toc-text">堆</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#运行时参数"><span class="toc-number">1.2.1.</span> <span class="toc-text">运行时参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#对象分配过程"><span class="toc-number">1.2.2.</span> <span class="toc-text">对象分配过程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#三种GC类型"><span class="toc-number">1.2.3.</span> <span class="toc-text">三种GC类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#TLAB"><span class="toc-number">1.2.4.</span> <span class="toc-text">TLAB</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#参数总结"><span class="toc-number">1.2.5.</span> <span class="toc-text">参数总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#堆是分配对象的唯一选择吗？"><span class="toc-number">1.2.6.</span> <span class="toc-text">堆是分配对象的唯一选择吗？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#方法区"><span class="toc-number">1.3.</span> <span class="toc-text">方法区</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#储存内容"><span class="toc-number">1.3.1.</span> <span class="toc-text">储存内容</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#运行时常量池-vs-常量池"><span class="toc-number">1.3.2.</span> <span class="toc-text">运行时常量池 vs 常量池</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#方法区和栈的调用："><span class="toc-number">1.3.3.</span> <span class="toc-text">方法区和栈的调用：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#方法区变迁"><span class="toc-number">1.3.4.</span> <span class="toc-text">方法区变迁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#关于静态变量"><span class="toc-number">1.3.5.</span> <span class="toc-text">关于静态变量</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#关于对象"><span class="toc-number">1.4.</span> <span class="toc-text">关于对象</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#创建对象的方式"><span class="toc-number">1.4.1.</span> <span class="toc-text">创建对象的方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#对象的内存布局"><span class="toc-number">1.4.2.</span> <span class="toc-text">对象的内存布局</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#对象的定位"><span class="toc-number">1.4.3.</span> <span class="toc-text">对象的定位</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#直接内存"><span class="toc-number">1.5.</span> <span class="toc-text">直接内存</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#执行引擎"><span class="toc-number">1.6.</span> <span class="toc-text">执行引擎</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#垃圾回收"><span class="toc-number">1.7.</span> <span class="toc-text">垃圾回收</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#标记阶段"><span class="toc-number">1.7.1.</span> <span class="toc-text">标记阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#finalize"><span class="toc-number">1.7.2.</span> <span class="toc-text">finalize</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#清除阶段"><span class="toc-number">1.7.3.</span> <span class="toc-text">清除阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#相关概念"><span class="toc-number">1.7.4.</span> <span class="toc-text">相关概念</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#System-gc"><span class="toc-number">1.7.4.1.</span> <span class="toc-text">System.gc()</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#内存泄漏"><span class="toc-number">1.7.4.2.</span> <span class="toc-text">内存泄漏</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#安全点和安全区域"><span class="toc-number">1.7.4.3.</span> <span class="toc-text">安全点和安全区域</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#强软弱虚"><span class="toc-number">1.7.4.4.</span> <span class="toc-text">强软弱虚</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#垃圾回收器"><span class="toc-number">1.7.5.</span> <span class="toc-text">垃圾回收器</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#几种垃圾回收器"><span class="toc-number">1.7.5.1.</span> <span class="toc-text">几种垃圾回收器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Serial-回收器：串行回收"><span class="toc-number">1.7.5.2.</span> <span class="toc-text">Serial 回收器：串行回收</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ParNew-回收器：并行回收"><span class="toc-number">1.7.5.3.</span> <span class="toc-text">ParNew 回收器：并行回收</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Parallel-Scavenge-收集器：吞吐量优先"><span class="toc-number">1.7.5.4.</span> <span class="toc-text">Parallel Scavenge 收集器：吞吐量优先</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CMS-垃圾回收器"><span class="toc-number">1.7.5.5.</span> <span class="toc-text">CMS 垃圾回收器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#G1-回收器"><span class="toc-number">1.7.5.6.</span> <span class="toc-text">G1 回收器</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#GC日志"><span class="toc-number">1.7.6.</span> <span class="toc-text">GC日志</span></a></li></ol></li></ol></li></ol></div></div></div><div id="body-wrap"><div id="web_bg" data-type="color"></div><header class="post-bg" id="page-header" style="background-image: url(/img/default2.jpg)"><nav id="nav"><span class="pull-left" id="blog_name"><a class="blog_title" id="site-name" href="/">Jinondo's Blog</a></span><span class="pull-right menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down menus-expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><span class="toggle-menu close"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">JVM-Notes</div></div><div id="post-meta"><div class="meta-firstline"><time class="post-meta__date"><span class="post-meta__date-created" title="发表于 2021-05-22 23:04:00"><i class="far fa-calendar-alt fa-fw"></i> 发表于 2021-05-22</span><span class="post-meta__separator">|</span><span class="post-meta__date-updated" title="更新于 2021-05-22 23:06:33"><i class="fas fa-history fa-fw"></i> 更新于 2021-05-22</span></time></div><div class="meta-secondline"> </div><div class="meta-thirdline"><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta__icon"></i><span>阅读量:</span><span id="busuanzi_value_page_pv"></span></span><span class="post-meta-commentcount"></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><h1 id="Interview-JVM"><a href="#Interview-JVM" class="headerlink" title="Interview JVM"></a>Interview JVM</h1><p>ps: 本笔记记录宋红康JVM教程</p>
+<h2 id="虚拟机栈"><a href="#虚拟机栈" class="headerlink" title="虚拟机栈"></a>虚拟机栈</h2><p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC05%E7%AB%A0_%E6%A0%88%E6%A1%A2%E5%86%85%E9%83%A8%E7%BB%93%E6%9E%84.jpg" alt=""></p>
+<ul>
+<li>每个栈帧中存储着：<ul>
+<li>局部变量表 Local Variables</li>
+<li>操作数栈 Operand stack</li>
+<li>动态链接 Dynamic Linking</li>
+<li>方法返回地址 Return Address</li>
+<li>一些附加信息</li>
+</ul>
+</li>
+<li>内部保存一个个栈帧，对应着一次次的java方法调用</li>
+<li>作用：主管java程序的运行，它保存方法的局部变量（8种基本数据类型，对象的引用地址），部分结果，并参与方法的调用和返回。</li>
+<li>设置栈大小 -Xss</li>
+</ul>
+<h3 id="局部变量表"><a href="#局部变量表" class="headerlink" title="局部变量表"></a>局部变量表</h3><ul>
+<li>在局部变量表里，32位以内的类型占用一个 slot，64位的类型（long和double）占用两个slot</li>
+<li>一个面试题：</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i1 = <span class="number">10</span>;</span><br><span class="line">    i1 = i1++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> i2 = <span class="number">10</span>;</span><br><span class="line">    i2 = ++i2;</span><br><span class="line"></span><br><span class="line">    System.out.println(i1 +<span class="string">"---"</span>+i2);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> i3 = <span class="number">10</span>;</span><br><span class="line">    <span class="keyword">int</span> i4 = i3++ + ++i3;</span><br><span class="line">    System.out.println(i3 +<span class="string">"---"</span>+i4);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">10---11</span><br><span class="line">12---22</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="栈中可能会出现的异常"><a href="#栈中可能会出现的异常" class="headerlink" title="栈中可能会出现的异常"></a>栈中可能会出现的异常</h3><p>Java虚拟机规范允许Java栈的大小是动态的或者是固定不变的。</p>
+<ul>
+<li>如果采用固定大小的java虚拟机栈，那每一个线程的java虚拟机栈容量可以在线程创建时候独立选定。如果线程请求分配的栈容量超过jvm允许的最大容量，jvm将会抛出 <code>StackOverFlowError</code> 异常</li>
+<li>如果栈可以动态扩展，并且在尝试扩展的时候无法申请到足够的内存，或者在创建新的线程时没有足够的内存去创建对应的虚拟机栈，则jvm将会抛出一个 <code>OutOfMemoryError</code> 异常。</li>
+</ul>
+<h3 id="动态链接"><a href="#动态链接" class="headerlink" title="动态链接"></a>动态链接</h3><p>在JVM中，将符号引用转换成调用方法的直接引用与方法的绑定机制相关</p>
+<ul>
+<li>静态链接，被调用的目标方法在编译期可知，且运行期保持不变</li>
+<li>动态链接，只能够在运行期将调用方法的符号引用转换为直接引用。</li>
+<li>早起绑定 vs 晚期绑定</li>
+</ul>
+<p><strong>非虚方法</strong></p>
+<ul>
+<li>如果方法在编译期就确定了具体的调用版本，这个版本在运行时不可变，这样的方法叫做非虚方法</li>
+<li>静态方法，私有方法，final方法，实例构造器，父类方法都是非虚方法</li>
+<li>其他方法称为虚方法</li>
+</ul>
+<p>虚拟机提供的方法调用指令</p>
+<ul>
+<li>普通调用指令：<ul>
+<li>invokestatic 调用静态方法，解析阶段确定</li>
+<li>invokespecial 调用&lt;init&gt; ，私有及父类方法，解析阶段确定</li>
+<li>invokevirtual 所有虚方法</li>
+<li>invokeinterface 接口方法</li>
+</ul>
+</li>
+<li>动态调用指令：<ul>
+<li>invokedynamic （jdk7）动态解析出需要调用的方法，然后执行</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>invokestatic  和 invokespecial  称为非虚方法，其余（final修饰除外，final使用invokevirtual）称为虚方法</p>
+<p>关于 invokedynamic ：</p>
+<p>在java7中需要借助工具生成该指令，直到在java8的lambda表达式中可以直接生成该指令。java是静态语言类型，这个只是让java增加了动态语言的功能。 </p>
+</blockquote>
+<p><strong>方法的重写 &amp; 虚方法表</strong></p>
+<p>简单说就是得到这个方法名称，看这个类中有没有和这个名称和描述相同的方法，没有就一层层向父类去搜索和验证，故提高性能就是用了虚方法表（非虚方法不需要表，因为已经编译期确定了）</p>
+<p>例如：</p>
+<p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/image-20210520121658269.png" alt=""></p>
+<h2 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h2><ul>
+<li>每一个 JVM 实例只存在一个堆内存</li>
+<li>堆里除了放对象实例，也可能会放引用（例如成员变量，它的实体和引用都放在堆里，如果是方法中的局部变量，则引用放在栈里的局部变量表里）</li>
+</ul>
+<h3 id="运行时参数"><a href="#运行时参数" class="headerlink" title="运行时参数"></a>运行时参数</h3><p><strong>调整整体堆大小</strong></p>
+<ul>
+<li>调参： -Xms -Xmx (初始堆空间，最大堆空间) ms：memory start，mx：memory max（我猜的）</li>
+<li>运行参数的堆大小在实际中一般都设一样的，防止频繁调整堆大小而消耗系统性能</li>
+</ul>
+<p>查看设置的参数：</p>
+<ol>
+<li>方式1: jps    查看进程号，  jstat -gc 进程id</li>
+<li>方式2：-XX:+PrintGCDetails</li>
+</ol>
+<p><strong>配置新生代与老年代在堆结构的占比</strong></p>
+<p>:one:  默认 -XX:NewRatio = 2，表示新生代占1，老年代占2，新生代占整个堆的1/3</p>
+<p>:two: 可以修改 -XX:NewRatio = 4，表示新生代占1，老年代占4，新生代占整个堆的1/5</p>
+<p>也可以直接设置 <code>-Xmn</code> 设置新生代空间的大小 (如果和占比同时设置了，就以-Xmn为准)</p>
+<p><strong>设置Eden和Survivor的比例</strong></p>
+<p>默认比例是8:1:1；但是jvm有个自适应机制，所以测试默认会是6:1:1，可以同通过修改 <code>-XX:-UseAdaptiveSizePolicy</code>来关闭自适应的内存分配策略，但是！事实设置了并没有效果。</p>
+<p>正确设置比例应该使用  <code>-XX:SurvivorRatio=8</code></p>
+<h3 id="对象分配过程"><a href="#对象分配过程" class="headerlink" title="对象分配过程"></a>对象分配过程</h3><ol>
+<li>new的对象先放在伊甸园区，此区有大小限制。</li>
+<li>当伊甸园的空间填满时，程序又需要创建对象，JVM的垃圾回收期对伊甸园区进行GC（minor GC 或者 YGC）。</li>
+<li>GC后将伊甸园区的剩余对象，即幸存者，移动到幸存者0区，并把 age 设置为1,。</li>
+<li>如果再次触发垃圾回收，还是一样伊甸园区进行GC，剩余对象放到幸存者1区（就是幸存者中空的区，空的就是to区，另一个是from区），Minor GC会触发幸存者0区的GC，把0区的不再被引用的对象销毁后，剩余的对象放到幸存者1区，此时把对象的年龄再加1，此时0区又变成了to区。</li>
+<li>当幸存者区中的年龄为15时（默认情况），则在发生GC时会被进入老年区。可以设置该参数 <code>-XX:MaxTenuringThreshold=&lt;N\&gt;</code> </li>
+<li>如果一个要分配一个大对象，在minorGC完后伊甸园区已经空了，但还是放不下，就直接移送到老年区，如果老年区这时候还放不下，就进行fullGC或者说MajorGC。假如还是放不下这个对象，则报 OOM。</li>
+<li>还有一种情况，当发生GC时，要把对象移送到幸存者区时，幸存者放不下，则移送到老年代（:question: 是哪个对象移送到老年代 ? ）</li>
+<li>动态对象年龄判断：如果幸存者区中相同年龄的所有对象大小的综合大于幸存者空间的一半，年龄大于或等于该年龄的对象可用直接进入老年代，无需等到阈值中要求的年龄，因为s1和s0的复制算法也是需要耗性能。</li>
+</ol>
+<blockquote>
+<p>关于垃圾回收：频繁在新生区收集，很少在养老区收集（第一，养老区空间大，第二，对象都是不太可能被清除的对象），几乎不再永久区/元空间收集。</p>
+</blockquote>
+<h3 id="三种GC类型"><a href="#三种GC类型" class="headerlink" title="三种GC类型"></a>三种GC类型</h3><p>垃圾回收对象为三个内存区域（新生代，老年代，方法区），大部分GC都是指新生代的回收，老年代的回收比较占性能，所以调优主要针对MajorGC和FullGC。</p>
+<p>针对HotSpot VM的实现，GC按照回收区域又分为两大类型，一种是部分收集（Partial GC），一种是整堆收集（Full GC）</p>
+<p>:one: 部分收集</p>
+<ul>
+<li>新生代收集（Minor GC / Young GC）</li>
+<li>老年代收集 （Major GC / Old GC）<ul>
+<li>目前，只有CMS GC会有单独收集老年代的行为</li>
+<li>注意，很多时候Major GC会和Full GC混淆使用，需要具体分辨是老年代回收还是整堆回收。</li>
+</ul>
+</li>
+<li>混合回收（Mixed GC）：收集整个新生代以及部分老年代的垃圾收集<ul>
+<li>目前，只有G1 GC会有这种行为</li>
+</ul>
+</li>
+</ul>
+<p>:two: 整堆收集（Full FC）：收集整个java堆和方法区的垃圾收集。</p>
+<blockquote>
+<p>年轻代GC：当新生代满的时候触发，这里的新生代指 Eden区，幸存者区满了不会触发！！！</p>
+<p>老年代GC：</p>
+<ul>
+<li>出现了Major GC，经常会伴随至少一次的Minor GC（但非绝对的，在Parallel Scavenge收集器的收集策略里就有直接进行Major GC的策略选择过程），也就是说在老年代空间不足时，会先尝试触发Minor GC，如果之后空间还不足，则触发Major GC（这里有点疑问，Minor GC会去清老年代的对象？？？）</li>
+<li>老年代GC比新生代GC慢10倍以上，STW时间更长</li>
+<li>GC之后还是内存不足，就报 OOM。</li>
+</ul>
+<p>Full GC触发机制：</p>
+<ul>
+<li>调用 System.gc() ，系统建议执行 Full GC，但是不必然执行</li>
+<li>老年代空间不足</li>
+<li>方法区空间不足</li>
+<li>通过Minor GC后进入老年代的平均大小小于老年代的可用内存。</li>
+</ul>
+</blockquote>
+<h3 id="TLAB"><a href="#TLAB" class="headerlink" title="TLAB"></a>TLAB</h3><p>Thread local allocation buffer</p>
+<blockquote>
+<ul>
+<li>从内存模型而不是垃圾收集的角度，对Eden区继续进行划分，JVM为每个线程分配了一个私有缓存区域，它包含在Eden空间内。</li>
+<li>尽管不是所有的对象实例都能在TLAB中成功分配内存，但JVM确实是将TLAB作为内存分配的首选</li>
+<li><code>-XX:+UserTLAB</code> 开启，默认也是开启的</li>
+<li>默认占整个伊甸园空间的1%，可以改参数</li>
+<li>一旦对象在TLAB分配内存失败，jvm就会尝试着通过加锁机制确保数据操作的原子性，从而直接在Eden空间中分配内存。</li>
+</ul>
+</blockquote>
+<h3 id="参数总结"><a href="#参数总结" class="headerlink" title="参数总结"></a>参数总结</h3><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/image-20210520171750709.png" style="zoom: 80%;" />
+
+<p><strong>空间分配担保</strong></p>
+<p>在发生MinorGC之前，虚拟机会检查老年代最大可用的连续空间是否大于新生代所有对象的总空间，</p>
+<ul>
+<li>如果大于，则此次MinorGC是安全的</li>
+<li>如果小于，则看<code>-XX:HandlePromotionFailure</code> 设置值是否允许担保失败<ul>
+<li>如果为True，则会继续检查老年代可用连续空间是否大于历次晋升到老年代的对象的平均大小<ul>
+<li>如果大于：则尝试进行一次Minor GC，这次YGC依然有风险</li>
+<li>如果小于，则进行一次Full GC</li>
+</ul>
+</li>
+<li>如果为False，则直接进行一次Full GC</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>在JD7及以后的版本，该参数不会影响到这个策略了，虽然还是定义了这个参数，但源码中显示不会用到。</p>
+<p>规则为：只要老年代的连续空间大于新生代对象总大小或者历次晋升的平均大小就会Minor GC，否则Full GC</p>
+</blockquote>
+<h3 id="堆是分配对象的唯一选择吗？"><a href="#堆是分配对象的唯一选择吗？" class="headerlink" title="堆是分配对象的唯一选择吗？"></a>堆是分配对象的唯一选择吗？</h3><p><strong>逃逸分析</strong></p>
+<p>在即时编译器编译优化阶段进行。</p>
+<ul>
+<li>当一个对象在方法中被定义后，对象只在方法内部使用，则认为没有发生逃逸。</li>
+<li>当一个对象在方法中被定义后，它被外部方法所引用，则认为发生逃逸。</li>
+</ul>
+<p>如果不发生逃逸，可以考虑栈上分配，随着方法执行的结束，栈空间就被移除。</p>
+<p>使用逃逸分析，编译器可以对代码做如下优化：</p>
+<ol>
+<li>栈上分配。将堆分配转化为栈分配。如果一个对象在子程序中被分配，要使指向该对象的指针永远不会逃逸，对象可能是栈分配的候选，而不是堆分配</li>
+<li>同步省略（锁消除）。如果一个对象被发现只能从一个线程被访问到，那么对这个对象的操作可以不考虑同步。例如你锁的对象每次都是new出来的。</li>
+<li>分离对象或标量替换。</li>
+</ol>
+<blockquote>
+<p><strong>结论：对象实例都是分配在堆上的！</strong></p>
+<p>上面提到的逃逸分析栈上分配，技术不算十分成熟，故其实不被应用，上面的例子看到的效果其实都是基于标量替换而已，并没有进行对象的栈上分配（对象分离出来了就不是对象了，当然就在栈上）。</p>
+<p>而且后来的元空间中字符串常量池和静态变量也分配到了堆上，也进一步说明对象实例就是分配在堆上的。</p>
+</blockquote>
+<h2 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h2><p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E6%96%B9%E5%BC%8F2%EF%BC%9A%E4%BD%BF%E7%94%A8%E7%9B%B4%E6%8E%A5%E6%8C%87%E9%92%88%E8%AE%BF%E9%97%AE.jpg" alt=""></p>
+<ul>
+<li><p>1.7 的方法区叫永久代，分配在java内存中，导致很容易触发OOM，1.8换成元空间，且分配在本地内存上，则不容易发生OOM</p>
+</li>
+<li><p><code>-XX:MetaspaceSize</code> 可以设置初始元空间大小，或者设置最大： <code>-XX:MaxMetaspaceSize</code> ,初始值为初始的高水位线，会根据Full GC后释放的空间大小来上下调整这个高水位线，所以为了避免多次GC，可以一次性元空间大小设置为一个相对较高的值。</p>
+</li>
+</ul>
+<h3 id="储存内容"><a href="#储存内容" class="headerlink" title="储存内容"></a>储存内容</h3><p>用于储存已被虚拟机加载的类型信息，常量，静态变量（只是引用而已，数据肯定还是存放在堆中），域信息，方法信息，即时编译器编译后的代码缓存等。</p>
+<p>这个方法信息中存有方法的字节码，操作数栈和局部变量表的大小信息等。</p>
+<p>方法区中还存有这个类加载进来时所使用的类加载器信息！</p>
+<blockquote>
+<p>其中如果是non-final的类变量，也是成为类数据在逻辑上的一部分</p>
+<p>如果是 final static的，则在prepare阶段就已经初始化了值（不是指初始化为0那种初始化，我们知道在链接的prepare阶段会初始化0，如int值，在初始化阶段才会去初始化值，指代码中写的初始化值）。</p>
+</blockquote>
+<h3 id="运行时常量池-vs-常量池"><a href="#运行时常量池-vs-常量池" class="headerlink" title="运行时常量池 vs 常量池"></a>运行时常量池 vs 常量池</h3><p>字节码文件中时常量池,通过类加载器加载到内存的方法区中就是运行时常量池，常量池里放的是字符引用，但运行时常量池则具有动态性，它换成了真实的地址。</p>
+<p><strong>为什么需要运行时常量池</strong></p>
+<p>因为常量池表中有各种字面量和对类型和方法的符号引用,java中的字节码需要数据支持,但数据太大不能存到字节码里,所以用符号引用,在动态链接时可以使用到常量池。</p>
+<h3 id="方法区和栈的调用："><a href="#方法区和栈的调用：" class="headerlink" title="方法区和栈的调用："></a>方法区和栈的调用：</h3><p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210520205458.png" alt=""></p>
+<p>可以看出字节码是放在方法区中的。</p>
+<h3 id="方法区变迁"><a href="#方法区变迁" class="headerlink" title="方法区变迁"></a>方法区变迁</h3><p>为什么要把永久代换成元空间</p>
+<ol>
+<li>为永久代设置空间大小是很难确定的，某些场景下功能多，要不断动态加载很多类，例如导入很多jar包，容易产生OOM</li>
+<li>对永久代调优困难，因为很难确定一个类还需不需要用到，再进行Full GC</li>
+</ol>
+<p>为什么要把字符串常量池放到堆里，</p>
+<p>从JDK7就开始这么做了，是因为永久代的回收效率比较低，只有在FullGC时触发，但很少会有FullGC，而开发中会有大量字符串被创建，回收效率很低，导致永久代内存不足。放到堆里，就能及时回收内存。</p>
+<blockquote>
+<p>方法区的垃圾收集主要回收两部分内容：常量池中废弃的常量和不再使用的类型。</p>
+</blockquote>
+<h3 id="关于静态变量"><a href="#关于静态变量" class="headerlink" title="关于静态变量"></a>关于静态变量</h3><p>java7以后选择把静态变量与Class对象都放在堆里。</p>
+<h2 id="关于对象"><a href="#关于对象" class="headerlink" title="关于对象"></a>关于对象</h2><h3 id="创建对象的方式"><a href="#创建对象的方式" class="headerlink" title="创建对象的方式"></a>创建对象的方式</h3><ol>
+<li>new 最常见的方式<ul>
+<li>变形1：Xxx的静态方法（单例模式）</li>
+<li>变形2：工厂类的静态方法</li>
+</ul>
+</li>
+<li>Class的newInstance() 反射的方式，只能调用空参的构造器，权限必须是public（jdk9过时）</li>
+<li>Constructor的newInstance（Xxx） 反射的方式，可以调用空参、带参的构造器，权限没有要求</li>
+<li>使用clone（）不调用任何构造器，当前类需要实现Cloneable接口，实现clone（）</li>
+<li>使用反序列化，从文件中，从网络中获取一个对象的二进制流</li>
+<li>第三方库Objenesis</li>
+</ol>
+<p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521151357.png" alt=""></p>
+<ol>
+<li>虚拟机遇到一条new指令，首先去检查这个指令的参数能否在元空间的常量池中定位到一个类的符号引用，并且检查这个符号引用代表的类是否已经被加载链接和初始化（即判断类元信息是否存在），如果没有，就在双亲委派机制下，使用当前类加载器以ClassLoader+包名+类名为key找到对应的class文件，如果没有找到文件，则抛出ClassNotFoundException。如果找到，则进行类加载，并生成对应的Class类对象。</li>
+<li>为对象分配内存，规整不规整的问题，选择哪种分配方式有Java堆是否规整决定，而java堆是否规整又由所采用的垃圾收集器是否带有压缩整理功能决定。</li>
+<li>处理并发安全问题</li>
+<li>初始化分配到的空间，主要是指“零值初始化”：</li>
+</ol>
+<blockquote>
+<p>给对象的属性赋值：</p>
+<ol>
+<li>属性的默认初始化</li>
+<li>显示初始化 / 代码块中初始化</li>
+<li>构造器中初始化</li>
+</ol>
+</blockquote>
+<p>指上方的第一点，属性的默认初始化</p>
+<p>5.设置对象头：将对象的所属类（类的元数据信息）、对象的HashCode和对象的GC信息，锁信息等数据储存在对象的对象头中，这个过程的具体设置方式取决于JVM实现。</p>
+<p>6.执行init初始化，指上面的2和3：显示初始化 / 代码块中初始化 和 构造器中初始化</p>
+<h3 id="对象的内存布局"><a href="#对象的内存布局" class="headerlink" title="对象的内存布局"></a>对象的内存布局</h3><p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521154239.png" alt=""></p>
+<p>例子：</p>
+<p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E5%9B%BE%E7%A4%BA%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80.jpg" alt=""></p>
+<h3 id="对象的定位"><a href="#对象的定位" class="headerlink" title="对象的定位"></a>对象的定位</h3><p>主要有两种定位方式：</p>
+<ol>
+<li>句柄访问</li>
+</ol>
+<p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E6%96%B9%E5%BC%8F1%EF%BC%9A%E5%8F%A5%E6%9F%84%E8%AE%BF%E9%97%AE.jpg" alt=""></p>
+<ol start="2">
+<li>直接指针（Hotspot默认）</li>
+</ol>
+<p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E6%96%B9%E5%BC%8F2%EF%BC%9A%E4%BD%BF%E7%94%A8%E7%9B%B4%E6%8E%A5%E6%8C%87%E9%92%88%E8%AE%BF%E9%97%AE.jpg" alt=""></p>
+<blockquote>
+<p>优缺点：</p>
+<p>句柄访问优点是在更改对象实例的地址时，栈里的本地变量表不需要做修改；缺点就是得咋堆里再开一块空间放句柄池</p>
+<p>直接指针优点是不需要在堆里额外开空间；缺点则是在更改对象实例的地址时，栈里的本地变量表需要做修改。</p>
+</blockquote>
+<h2 id="直接内存"><a href="#直接内存" class="headerlink" title="直接内存"></a>直接内存</h2><p>不是虚拟机运行时数据区的一部分。来源于NIO，通过存在堆中的DirectByteBuffer操作native内存</p>
+<p><code>ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1);</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ByteBuffer <span class="title">allocateDirect</span><span class="params">(<span class="keyword">int</span> capacity)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> DirectByteBuffer(capacity);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>:1st_place_medal:  优点：读写性能高</p>
+<blockquote>
+<p>本地内存也可能导致OOM，受限与系统内存，当然也可以调参数</p>
+<p>缺点：</p>
+<p>分配回收成本高；不受JVM内存回收管理。</p>
+</blockquote>
+<h2 id="执行引擎"><a href="#执行引擎" class="headerlink" title="执行引擎"></a>执行引擎</h2><p>执行引擎的工作过程</p>
+<p>从外观上看，所有的java虚拟机的执行引擎输入、输出都是一致的：输入的是字节码二进制流，处理过程是字节码解析执行的等效过程，输出的是执行结果。总的来说，执行引擎就是翻译字节码指令为机器能识别的指令。</p>
+<blockquote>
+<p>理解解释器和编译器</p>
+<p>解释器是对字节码逐行解释为机器指令让机器运行</p>
+<p>编译器是将源代码直接编译成本地机器相关的机器语言，而且有一个热点探测功能和代码缓存，热点探测分两种，方法调用计数器（将超过计数器阈值的代码做缓存）和回边计数器（统计循环体代码执行次数）。</p>
+</blockquote>
+<p>在Hotspot有两个JIT编译器，分为Client Compiler 和 Server Compiler</p>
+<p>简称为C1和C2。像之前说的逃逸分析，标量替换，同步消除是C2编译器的优化策略。</p>
+<h2 id="垃圾回收"><a href="#垃圾回收" class="headerlink" title="垃圾回收"></a>垃圾回收</h2><h3 id="标记阶段"><a href="#标记阶段" class="headerlink" title="标记阶段"></a>标记阶段</h3><p>标记阶段有两种标记算法：</p>
+<p>:one: 引用计数法<br>优点不用多说了，实现简单，垃圾对象便于辨识，判定效率高，回收没有延迟性。</p>
+<p>缺点：</p>
+<ul>
+<li>增加了存储空间开销</li>
+<li>增加时间开销</li>
+<li>主要缺点！：无法处理循环引用，致命缺陷，导致java的垃圾回收器中没有使用这类算法</li>
+</ul>
+<blockquote>
+<p>python 就同时支持引用计数和垃圾收集机制</p>
+<p>如何解决循环引用呢？</p>
+<ul>
+<li>手动解除</li>
+<li>使用弱引用 weakref</li>
+</ul>
+</blockquote>
+<p>:two: 可达性分析</p>
+<p>在 java 中，GC roots 包括以下几类元素</p>
+<ul>
+<li>虚拟机栈中引用的对象</li>
+<li>本地方法栈中引用的对象</li>
+<li>方法区中类静态属性引用的对象（如果不是静态是放在堆里的）</li>
+<li>方法区中常量引用的对象（例如字符串常量池里的引用）</li>
+<li>所有被同步锁synchronized持有的对象</li>
+<li>虚拟机内部的引用（基本数据类型对应的Class对象，常驻异常对象，系统类加载器）</li>
+<li>其他。。。</li>
+</ul>
+<p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521215952.png" alt=""></p>
+<p>上面图片第一点：例如分代垃圾回收对新生代回收，那么老年代也可能有对新生代中对象的一个引用，所以也要把老年代中的引用看成GC Roots。</p>
+<h3 id="finalize"><a href="#finalize" class="headerlink" title="finalize"></a>finalize</h3><p>永远不要主动调用finalize方法，应该交给垃圾回收机制调用。</p>
+<p>理由：</p>
+<ol>
+<li><p>在finalize 时可能会导致对象复活</p>
+</li>
+<li><p>finalize 的执行试驾时间是没有保障的，完全有GC线程决定，极端情况下，若不发生GC，则finalize方法将没有执行机会</p>
+</li>
+<li><p>一个糟糕的finalize会严重影响GC性能，所以交由GC去做，在必要的时候会去调用。</p>
+</li>
+</ol>
+<blockquote>
+<p>网上：尽管finalize()可以主动调用, 但是最好不要主动调用, 因为在代码中主动调用之后, 如果JVM再次调用, 由于之前的调用已经释放过资源了,所以二次释放资源就有可能出现导致出现空指针等异常, 而恰好这些异常是没有被捕获的, 那么就造成对象处于被破坏的状态, 导致该对象所占用的某一部分资源无法被回收而浪费.</p>
+</blockquote>
+<p><strong>对象的三种状态</strong></p>
+<ol>
+<li>可触及的：从根节点开始，可以到达这个对象。</li>
+<li>可复活的：对象的所有引用都被释放，但是对象有可能在finalize 中复活</li>
+<li>不可触及的：对象的 finalize 被调用，并且没有复活，那么就会进入不可触及状态。不可触及状态不可能被复活，因为finalize只会被调用一次</li>
+</ol>
+<p>以上只有在对象不可触及时才可以被回收。</p>
+<p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521224314.png" alt=""></p>
+<blockquote>
+<p>查看GCRoots的工具：用jvisualm导出dump，然后用Eclipse MAT打开dump查看</p>
+<p>或者用JProfiler进行GCroots溯源</p>
+</blockquote>
+<h3 id="清除阶段"><a href="#清除阶段" class="headerlink" title="清除阶段"></a>清除阶段</h3><p>清除阶段有三种算法：</p>
+<ol>
+<li>标记-清除算法 Mark Sweep</li>
+<li>复制算法 Copying</li>
+<li>标记-压缩算法 Mark Compact</li>
+</ol>
+<p>:one: 标记清除算法</p>
+<p>执行过程：</p>
+<p>当堆中有效内存空间被耗尽时，先STW，然后进行标记和清除</p>
+<ul>
+<li>标记：Collector 从引用根节点开始遍历，标记所有被引用的对象（注意！是标记被引用的），一般是在对象头里记录</li>
+<li>清除：Collector 从堆内存进行线性遍历，发现某个对象的Header里没有标记为可达的，则将其回收。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>效率不算高，需要两次遍历</li>
+<li>STW</li>
+<li>内存碎片，需要维护空闲列表（额外空间消耗）</li>
+</ul>
+<blockquote>
+<p>清除并不是真正的置空，只是把这个地址记录在空闲列表中。</p>
+</blockquote>
+<p>:two: 复制算法</p>
+<p>看图：</p>
+<img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC14%E7%AB%A0_%E5%A4%8D%E5%88%B6%E7%AE%97%E6%B3%95.jpg" style="zoom: 40%;" />
+
+<p>检索到有引用关系就直接复制，没有标记和清除过程</p>
+<p>优点：</p>
+<ul>
+<li>没有标记和清除过程，实现简单，运行高效（主要优点）</li>
+<li>没有碎片问题</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>需要两倍空间</li>
+<li>对于G1这种拆分成为大量region的GC，复制需要维护region之间的对象引用关系，内存占用和时间开销不小（可以参考堆的直接指针引用那块知识，对象地址换了就得更改栈中数据）</li>
+</ul>
+<blockquote>
+<p>使用于存活对象数量小的情况，你想想GC完全都存活又得复制一遍，是不是 :cry:</p>
+<p>所以用于年轻代的s0和s1区（朝生夕死），很合理。</p>
+</blockquote>
+<p>:three: 标记-压缩算法</p>
+<p>也成为标记-清除-压缩算法</p>
+<p>执行过程：</p>
+<ul>
+<li>第一阶段就标记，和标记清除一样</li>
+<li>第二阶段把所有存活对象压缩到内存的一端，按顺序排放</li>
+<li>之后，清理边界外所有的空间</li>
+</ul>
+<img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC14%E7%AB%A0_%E6%A0%87%E8%AE%B0-%E5%8E%8B%E7%BC%A9%E7%AE%97%E6%B3%95.jpg" style="zoom:40%;" />
+
+
+
+<p>优点：</p>
+<ul>
+<li>消除标记-清除算法的缺点：直接用指针碰撞，不需要维护空闲列表</li>
+<li>消除复制算法的缺点：内存减半</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>效率低于复制算法</li>
+<li>移动对象时，该对象的引用得改</li>
+<li>STW</li>
+</ul>
+<blockquote>
+<p>三种算法各有各的优势，所以HotSpot的垃圾回收器一般都用分代的垃圾回收机制。</p>
+</blockquote>
+<p><strong>增量收集算法 和 分区算法思路</strong></p>
+<p>以上算法都会STW，所以有了这两种算法</p>
+<ol>
+<li>增量收集算法的基础仍是传统的标记-清除和复制算法。增量收集算法通过对线程间冲突的妥善处理。允许垃圾收集线程以分阶段的方式完成标记、清除或复制工作。（缺点：线程切换和上下文转换，吞吐量下降）</li>
+<li>分区算法将整个堆空间划分成连续的不同小区间。每个小区间都独立使用，独立回收。好处是可以控制一次回收多少个小区间</li>
+</ol>
+<h3 id="相关概念"><a href="#相关概念" class="headerlink" title="相关概念"></a>相关概念</h3><h4 id="System-gc"><a href="#System-gc" class="headerlink" title="System.gc()"></a>System.gc()</h4><p>System.gc()   底层是：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">gc</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Runtime.getRuntime().gc();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>并不保证一定执行。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">System.runFinalization(); <span class="comment">// 强制调用 对象的finalize方法</span></span><br></pre></td></tr></table></figure>
+
+<p>题目：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">一个方法：</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">int</span>[] a = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">1024</span>*<span class="number">1024</span>];</span><br><span class="line">&#125;</span><br><span class="line">System.gc();   <span class="comment">// 此时并不会把上面的a给回收掉</span></span><br><span class="line"><span class="comment">// 查看class文件，局部变量表的长度为2，一个是this，另一个就是这个a，但没有显示出来而已。</span></span><br><span class="line"></span><br><span class="line">另一个方法：</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">int</span>[] a = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">1024</span>*<span class="number">1024</span>];</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">int</span> b = <span class="number">1</span>;</span><br><span class="line">System.gc(); <span class="comment">// 这个时候会把a给回收掉</span></span><br><span class="line"><span class="comment">// 涉及到变量表里的覆盖功能。</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="内存泄漏"><a href="#内存泄漏" class="headerlink" title="内存泄漏"></a>内存泄漏</h4><p>Memory leak</p>
+<blockquote>
+<p> 内存溢出不用多说了，原因有2，一个是堆大小设置不合理，一个是创建了太多对象</p>
+</blockquote>
+<p>内存泄漏严格上说，是一个对象不会再被用到了，但GC不能回收他们，称为内存泄漏</p>
+<p>宽泛意义上说，一些不太好的代码创建了一个声明周期很长的对象，也可以交内存泄漏</p>
+<p>例子：</p>
+<ol>
+<li>单例模式，单例的声明周期一般和应用程序一样长，如果单例中持有其他对象的，那么这个外部对象是不能被回收的，导致内存泄漏。</li>
+<li>一些提供close的资源没有关闭导致泄漏，例如数据库连接，socket和io，必须手动close。</li>
+<li>（宽泛意义）比如你把一些应该是局部变量的数据放到了对象属性上，甚至设置了static；或者把一些不必要的对象放在session，或者会话级别上，也算宽泛的内存泄漏。</li>
+</ol>
+<h4 id="安全点和安全区域"><a href="#安全点和安全区域" class="headerlink" title="安全点和安全区域"></a>安全点和安全区域</h4><p>安全点：在特定位置可以停下来GC</p>
+<ul>
+<li>抢占式中断（目前没有虚拟机采用）：先中断，如果还有线程没到安全点，在让这些线程启动跑到安全点</li>
+<li>主动式中断：设置一个中断标志，各个线程运行到safe point时主动轮训这个标志，如果标志为真，则将自己进行中断挂起</li>
+</ul>
+<p>安全区域：在一段代码片段中，对象的引用关系不会发生变化，在这个区域中的任何位置开始GC都是安全的。</p>
+<p>执行：</p>
+<ol>
+<li>当线程运行到safe region的代码时，首先表示进入了安全区，这段时间发生GC的话，JVM会忽视表示为safe region状态的线程</li>
+<li>当线程即将离开安全区是，如果已经完成GC，就继续运行，如果没有，则线程等待直到收到可以安全离开safe region的信号为止。</li>
+</ol>
+<blockquote>
+<p>关键是能让程序进行安全的GC，我的理解是安全点是让线程停在点上，区域是说可以让线程继续跑，因为没有引用变化。</p>
+</blockquote>
+<h4 id="强软弱虚"><a href="#强软弱虚" class="headerlink" title="强软弱虚"></a>强软弱虚</h4><p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522120445.png" alt=""></p>
+<ol>
+<li><p>强引用：不回收</p>
+</li>
+<li><p>软引用：内存不够就回收，内存够不回收（高速缓存就有用到弱引用），这个内存不够可能指报OOM之前，也可能不报OOM。</p>
+<p>这里就讲到：只被软引用关联着的对象，在系统将要发生内存溢出异常前，会把这些对象列进回收范围之中进行二次回收。注意这里的二次回收，也就是说在第一次普通回收之后，会发现内存还是不足，这时候会去回收软引用关联的对象，在回收之后可能不会报OOM，也可能会报OOM。</p>
+</li>
+<li><p>弱引用：发现即回收，只被弱引用关联的对象只能生存到下一次垃圾收集发生为止，软引用、弱引用都非常适合来保存那些可有可无的缓存数据。（这里有个WeakHashMap，底层的Entry就是继承了弱引用）</p>
+</li>
+<li><p>虚引用：一个对象如果仅持有虚引用，那么和没有引用几乎是一样的，无法通过虚引用来获取对象，get出来是null。</p>
+<p>目的在于跟踪垃圾回收过程。</p>
+</li>
+<li><p>终结器引用：和finalize有关</p>
+</li>
+</ol>
+<blockquote>
+<p>引用都会涉及到一个引用队列去管理。</p>
+</blockquote>
+<h3 id="垃圾回收器"><a href="#垃圾回收器" class="headerlink" title="垃圾回收器"></a>垃圾回收器</h3><p>分类：</p>
+<ol>
+<li>按线程数分，分为串行垃圾回收器和并行垃圾回收器。指GC的线程。</li>
+<li>按工作模式分，分为并发式和独占式。并发式是指并发垃圾回收器和应用程序交替工作，以尽可能减少应用程序的停顿时间；独占式就STW。</li>
+<li>按碎片处理方式。</li>
+<li>按工作的内存区间。</li>
+</ol>
+<p><strong>性能指标</strong></p>
+<p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC17%E7%AB%A0_%E5%90%9E%E5%90%90%E9%87%8F%E4%B8%8E%E6%9A%82%E5%81%9C%E6%97%B6%E9%97%B4.jpg" alt=""></p>
+<p>现在的标准是，保证了停顿时间，去最大程度加大吞吐量。</p>
+<h4 id="几种垃圾回收器"><a href="#几种垃圾回收器" class="headerlink" title="几种垃圾回收器"></a>几种垃圾回收器</h4><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC17%E7%AB%A0_%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E7%BB%84%E5%90%88.jpg" style="zoom:50%;" />
+
+<p>图片截止至JDK14</p>
+<p>JDK8中使用的是 parallel scavenge GC 和 parallel old GC。</p>
+<p>JDK9默认使用 G1GC</p>
+<h4 id="Serial-回收器：串行回收"><a href="#Serial-回收器：串行回收" class="headerlink" title="Serial 回收器：串行回收"></a>Serial 回收器：串行回收</h4><ul>
+<li>最基本，历史最悠久</li>
+<li>Hotspot 虚拟机中 Client模式下的默认新生代垃圾收集器</li>
+<li>Serial 收集器采用复制算法，串行回收和STW机制执行内存回收</li>
+<li>对于老年代有一个 Serial Old 收集器，一样是串行回收和STW，但对于老年代是用标记-压缩算法。<ul>
+<li>Serial Old是Client模式的默认老年代回收器</li>
+<li>Serial Old在server模式下也有用途：1. 与新生代的parallel scavenge配合使用 2. 作为老年代CMS的后背垃圾收集方</li>
+</ul>
+</li>
+<li>在单核CPU环境来说非常好</li>
+</ul>
+<h4 id="ParNew-回收器：并行回收"><a href="#ParNew-回收器：并行回收" class="headerlink" title="ParNew 回收器：并行回收"></a>ParNew 回收器：并行回收</h4><p>就是Serial的并行版本。配合使用情况见上图。</p>
+<h4 id="Parallel-Scavenge-收集器：吞吐量优先"><a href="#Parallel-Scavenge-收集器：吞吐量优先" class="headerlink" title="Parallel Scavenge 收集器：吞吐量优先"></a>Parallel Scavenge 收集器：吞吐量优先</h4><p>JDK8 默认</p>
+<p>大概机制和 ParNew 回收器 一致，但不用的是：</p>
+<ol>
+<li>达到一个可控制的吞吐量。</li>
+<li>有自适应调节策略。</li>
+</ol>
+<blockquote>
+<p>高吞吐量可以高效率地利用CPU时间，尽快完成程序的运算任务，主要适用于后台运算而不需要太多交互的任务。因此经常在服务器环境中使用。例如执行批处理，订单处理，工资支付，科学计算的应用程序。</p>
+</blockquote>
+<ol start="3">
+<li>JDK1.6时老年代使用了Parallel Old， 代替那个串行的Serial Old。</li>
+<li>也是标记压缩，并行回收和STW。</li>
+</ol>
+<blockquote>
+<p>一些指定参数（这就是吞吐量优先的原因）：</p>
+<p><code>-XX:ParallelGCThreads</code> 设置年轻代并行收集器的线程数</p>
+<p><code>-XX:MaxGCPauseMills</code> 设置收集器最大停顿时间（使用需谨慎，因为可能吞吐量会下降）</p>
+<p><code>-XX:GCTimeRatio</code> 设置垃圾收集时间栈总时间的比例 (= 1 / (N+1) )。设置这个N，范围（1,100），默认99，即垃圾回收时间不超过1%。</p>
+<p><code>-XXUseAdaptiveSizePolicy</code> 设置自适应，例如年轻代大小，伊甸园和幸存者的比例，晋升老年代的年龄都自适应调整。</p>
+</blockquote>
+<h4 id="CMS-垃圾回收器"><a href="#CMS-垃圾回收器" class="headerlink" title="CMS 垃圾回收器"></a>CMS 垃圾回收器</h4><p><strong>Concurrent Mark Sweep</strong></p>
+<ul>
+<li>Hotspot中第一款真正意义上的并发收集器，第一次实现让垃圾收集线程和用户线程同时进行。关注点是尽可能降低用户线程的停顿时间。</li>
+<li>采用 标记-清除 算法</li>
+<li>也会STW</li>
+<li>在G1出现之前应用广泛</li>
+<li>对于老年代的收集，配合使用见上图</li>
+</ul>
+<p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522160421.png" alt=""></p>
+<ol>
+<li>初始标记：只是标记和GC Root直接相关联的对象，速度较快，STW时间短</li>
+<li>并发标记：遍历整个对象图和引用链</li>
+<li>重新标记：因为上个阶段是并发，所以可能引用会有一些变化，但变化不大，（这里重新标记可能是标记那些上一阶段没有被标记的对象？）STW时间较短</li>
+<li>并发清除：清理已经死亡的对象，不需要更改到存活对象，也就可以并发。</li>
+<li>重置线程</li>
+</ol>
+<blockquote>
+<ol>
+<li>由于并发操作，导致不能再堆真的满了的情况下去进行GC，达到一个阈值就需要GC，如果预留内存无法满足程序需要，则出现Concurrent Mode Failure，此时就得启用预备方案：Serial Old</li>
+<li>由于是并发清除，所以不能用Compact，会造成内存碎片</li>
+</ol>
+</blockquote>
+<p>优点：</p>
+<ul>
+<li>并发收集</li>
+<li>低延迟</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>内存碎片</li>
+<li>占用CPU资源，总吞吐量降低</li>
+<li>无法处理浮动垃圾。</li>
+</ul>
+<p>相关参数：</p>
+<ul>
+<li>设置堆使用的内存阈值</li>
+<li>指定执行Full GC后进行内存压缩整理</li>
+<li>设置CMS线程数量</li>
+</ul>
+<h4 id="G1-回收器"><a href="#G1-回收器" class="headerlink" title="G1 回收器"></a>G1 回收器</h4><p>JDK9默认垃圾回收器</p>
+<ul>
+<li>G1 跟踪各个 Region 里面的垃圾堆积的价值（回收所获得的空间大小及回收所需时间的经验值），在后台维护一个优先列表，每次根据允许的收集时间，优先回收价值最大的Region。</li>
+</ul>
+<p><strong>优势：</strong></p>
+<ol>
+<li><p>并行与并发：可以有多个GC线程同时工作，此时用户线程STW；可以有工作线程和应用程序同时执行。</p>
+</li>
+<li><p>分代收集，同时兼顾年轻代和老年代</p>
+<p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522184858.png" alt=""></p>
+</li>
+<li><p>空间整合</p>
+<ul>
+<li>CMS：”标记-清除“算法、内存碎片在若干次GC后进行一次碎片整理</li>
+<li>G1：Region之间是复制算法，整体看做 标记-压缩，两种算法都可避免内存碎片。当Java堆非常大时，G1优势更明显</li>
+</ul>
+</li>
+<li><p>可预测的停顿时间模型（软实时 soft real-time）</p>
+<ul>
+<li>可以控制消耗在垃圾收集上的时间</li>
+<li>G1只选取部分区域进行内存回收，这样缩小了回收的范围，对于全局停顿情况的发生也能得到较好的控制。比如我限制停顿200ms，GC就会去找符合要求的区域进行回收。</li>
+<li>维护一个优先列表，按照回收价值回收。</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p>经验上看，小内存应用上CMS表现优于G1，G1大内存上发挥优势，平衡点再6-8GB。</p>
+</blockquote>
+<p><strong>参数</strong></p>
+<ul>
+<li>设置每个Region大小：1MB - 32 MB，目标是根据最小的Java堆大小划分出2048个区域。默认是堆内存的1/2000</li>
+<li>设置期望达到的停顿时间指标（JVM尽力实现，不保证达到），默认200ms</li>
+<li>设置STW时GC线程数</li>
+<li>设置并发标记的线程数</li>
+<li>设置触发GC周期的堆占用率阈值，默认45。</li>
+</ul>
+<p><strong>操作</strong></p>
+<p>第一步：开启G1</p>
+<p>第二步：设置堆最大内存 -Xms -Xmx</p>
+<p>第三步：设置最大停顿时间</p>
+<p>最好不要设置年轻代大小 -XX:Newratio，可能会覆盖暂停时间 </p>
+<p>G1提供了：YoungGC、Mixed GC 和 Full GC，在不同条件下被触发。</p>
+<p><strong>应用场景</strong></p>
+<p>在下面的情况时，使用G1可能比CMS好：</p>
+<ol>
+<li>超过50%的java堆被活动数据占用</li>
+<li>对象分配频率或年代提升频率变化很大</li>
+<li>GC停顿时间过长（长于0.5至1秒）</li>
+</ol>
+<blockquote>
+<p>Hotspot 垃圾收集器里，除了 G1以外，其他的垃圾收集器使用内置的 JVM 线程执行 GC 的多线程操作，而 G1GC 可以采用应用线程承担后台运行的 GC工作，即当 JVM 的GC 线程处理速度慢时，系统会调用应用程序线程帮助加速垃圾回收过程。</p>
+</blockquote>
+<blockquote>
+<ul>
+<li><p>Region只能是Eden、Survivor、Humongous中的一种，但是它的身份不是固定的，谁来占用那么这个Region就是谁的.</p>
+</li>
+<li><p>Humongous区，主要用于存储大对象，如果超过0.5的region就放入H区。</p>
+</li>
+<li><p>设置H区的原因：如果存在短期存在的大对象，直接放入老年代有负面影响。</p>
+</li>
+</ul>
+</blockquote>
+<blockquote>
+<ul>
+<li>依然具有指针碰撞 （region内）</li>
+<li>依然有TLAB：虽然存在分区Region，但是依然有线程独有的TLAB空间，这样可以保证多个线程对对象修改可以并行操作</li>
+</ul>
+</blockquote>
+<p><strong>过程</strong></p>
+<p>包括三个环节：</p>
+<ul>
+<li>年轻代GC</li>
+<li>老年代并发标记过程 Concurrent Marking</li>
+<li>混合回收 Mixed GC</li>
+<li>（如果需要，可能会触发单线程，独占式，高强度的Full GC）</li>
+</ul>
+<p>具体：</p>
+<p>年轻代回收  :arrow_right: 年轻代GC + 并发标记 :arrow_right:  混合回收（不是FullGC）</p>
+<p>内容太多了，这里只记录重点</p>
+<ul>
+<li>当年轻代的Eden区用尽（应该是指的所有eden区）时开始YGC。是一个并行的独占式收集器，复制算法，和survivor区结合进行。（涉及Eden区和Survivor区的回收）<ul>
+<li>这里会涉及到 remembered set，因为老年代中可能也也有引用指向年轻代，所以每个region有一个 rset，避免全局扫描，rsets数据是由card table来的。这也是G1的一个小缺点</li>
+<li>最后有个阶段是回收软弱虚final，JNI weak等引用</li>
+</ul>
+</li>
+<li>当堆内存使用到一定值（默认45%）进行老年代并发标记过程<ul>
+<li>初始标记根节点直接可达对象 STW</li>
+<li>根区域扫描：扫描幸存者区的直接可达的老年代区域对象。（在 minor GC 前）</li>
+<li>并发标记。（如果发现整个区域是垃圾，直接回收）</li>
+<li>再次标记 STW</li>
+<li>独占清理 STW</li>
+<li>并发清除（针对于：如果发现整个区域是垃圾，直接回收）</li>
+</ul>
+</li>
+<li>标记完进行混合回收，其中的老年代回收会根据回收价值（有一个阈值，垃圾占比，默认65%）去优先队列取小部分老年代region，而不是所有</li>
+</ul>
+<h3 id="GC日志"><a href="#GC日志" class="headerlink" title="GC日志"></a>GC日志</h3><p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522214808.png" alt=""></p>
+<blockquote>
+<p>未来发展：ZGC</p>
+</blockquote>
+<p><code>jinfo -flag NewRatio pid</code> 可以查看设置的jvm参数，NewRatio 可以替换</p>
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">Jinondo</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://jinondo.github.io/2021/05/22/JVM-Note/">https://jinondo.github.io/2021/05/22/JVM-Note/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://jinondo.github.io" target="_blank">Jinondo's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Java/">Java</a></div><div class="post_share"><div class="social-share" data-image="/img/default2.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"/><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js"></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2021/03/03/%E5%93%88%E5%B8%8C%E8%A1%A8%E4%B8%8E%E5%AD%97%E7%AC%A6%E4%B8%B2/"><img class="next-cover" data-src="/img/default4.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">哈希表与字符串</div></div></a></div></nav></article></main><footer id="footer" data-type="color"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2021 By Jinondo</div><div class="framework-info"><span>驱动 </span><a href="https://hexo.io" target="_blank" rel="noopener"><span>Hexo</span></a><span class="footer-separator">|</span><span>主题 </span><a href="https://github.com/jerryc127/hexo-theme-butterfly" target="_blank" rel="noopener"><span>Butterfly</span></a></div></div></footer></div><section class="rightside" id="rightside"><div id="rightside-config-hide"><button id="readmode" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font_plus" title="放大字体"><i class="fas fa-plus"></i></button><button id="font_minus" title="缩小字体"><i class="fas fa-minus"></i></button><button class="translate_chn_to_cht" id="translateLink" title="简繁转换">繁</button><button id="darkmode" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" title="设置"><i class="fas fa-cog"></i></button><button class="close" id="mobile-toc-button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js" async></script><script src="/js/third-party/ClickShowText.js"></script></body></html>
