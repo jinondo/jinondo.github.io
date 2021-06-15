@@ -1,102 +1,404 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>JVM-Notes | Jinondo's Blog</title><meta name="description" content="Interview JVMps: 本笔记记录宋红康JVM教程 虚拟机栈  每个栈帧中存储着： 局部变量表 Local Variables 操作数栈 Operand stack 动态链接 Dynamic Linking 方法返回地址 Return Address 一些附加信息   内部保存一个个栈帧，对应着一次次的java方法调用 作用：主管java程序的运行，它保存方法的局部变量（8种基本数据类型"><meta name="keywords" content="Java"><meta name="author" content="Jinondo"><meta name="copyright" content="Jinondo"><meta name="format-detection" content="telephone=no"><link rel="shortcut icon" href="/img/cytlogo.png"><link rel="canonical" href="https://jinondo.github.io/2021/05/22/JVM-Note/"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//fonts.googleapis.com" crossorigin="crossorigin"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta property="og:type" content="article"><meta property="og:title" content="JVM-Notes"><meta property="og:url" content="https://jinondo.github.io/2021/05/22/JVM-Note/"><meta property="og:site_name" content="Jinondo's Blog"><meta property="og:description" content="Interview JVMps: 本笔记记录宋红康JVM教程 虚拟机栈  每个栈帧中存储着： 局部变量表 Local Variables 操作数栈 Operand stack 动态链接 Dynamic Linking 方法返回地址 Return Address 一些附加信息   内部保存一个个栈帧，对应着一次次的java方法调用 作用：主管java程序的运行，它保存方法的局部变量（8种基本数据类型"><meta property="og:image" content="https://jinondo.github.io/img/radiohead.jpg"><meta property="article:published_time" content="2021-05-22T15:04:00.000Z"><meta property="article:modified_time" content="2021-05-22T15:11:36.111Z"><meta name="twitter:card" content="summary"><script>var activateDarkMode = function () {
-  document.documentElement.setAttribute('data-theme', 'dark')
-  if (document.querySelector('meta[name="theme-color"]') !== null) {
-    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#000')
-  }
-}
-var activateLightMode = function () {
-  document.documentElement.setAttribute('data-theme', 'light')
-  if (document.querySelector('meta[name="theme-color"]') !== null) {
-    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#fff')
-  }
-}
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>JVM-Notes | Hexo</title>
+  <meta name="description" content="Interview JVMps: 本笔记记录宋红康JVM教程 虚拟机栈  每个栈帧中存储着： 局部变量表 Local Variables 操作数栈 Operand stack 动态链接 Dynamic Linking 方法返回地址 Return Address 一些附加信息   内部保存一个个栈帧，对应着一次次的java方法调用 作用：主管java程序的运行，它保存方法的局部变量（8种基本数据类型">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM-Notes">
+<meta property="og:url" content="https://jinondo.github.io/2021/05/22/JVM-Note/index.html">
+<meta property="og:site_name" content="Jinondo&#39;s Blog">
+<meta property="og:description" content="Interview JVMps: 本笔记记录宋红康JVM教程 虚拟机栈  每个栈帧中存储着： 局部变量表 Local Variables 操作数栈 Operand stack 动态链接 Dynamic Linking 方法返回地址 Return Address 一些附加信息   内部保存一个个栈帧，对应着一次次的java方法调用 作用：主管java程序的运行，它保存方法的局部变量（8种基本数据类型">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC05%E7%AB%A0_%E6%A0%88%E6%A1%A2%E5%86%85%E9%83%A8%E7%BB%93%E6%9E%84.jpg">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/image-20210520121658269.png">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/image-20210520171750709.png">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E6%96%B9%E5%BC%8F2%EF%BC%9A%E4%BD%BF%E7%94%A8%E7%9B%B4%E6%8E%A5%E6%8C%87%E9%92%88%E8%AE%BF%E9%97%AE.jpg">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210520205458.png">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521151357.png">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521154239.png">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E5%9B%BE%E7%A4%BA%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80.jpg">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E6%96%B9%E5%BC%8F1%EF%BC%9A%E5%8F%A5%E6%9F%84%E8%AE%BF%E9%97%AE.jpg">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E6%96%B9%E5%BC%8F2%EF%BC%9A%E4%BD%BF%E7%94%A8%E7%9B%B4%E6%8E%A5%E6%8C%87%E9%92%88%E8%AE%BF%E9%97%AE.jpg">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521215952.png">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521224314.png">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC14%E7%AB%A0_%E5%A4%8D%E5%88%B6%E7%AE%97%E6%B3%95.jpg">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC14%E7%AB%A0_%E6%A0%87%E8%AE%B0-%E5%8E%8B%E7%BC%A9%E7%AE%97%E6%B3%95.jpg">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522120445.png">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC17%E7%AB%A0_%E5%90%9E%E5%90%90%E9%87%8F%E4%B8%8E%E6%9A%82%E5%81%9C%E6%97%B6%E9%97%B4.jpg">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC17%E7%AB%A0_%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E7%BB%84%E5%90%88.jpg">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522160421.png">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522184858.png">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522214808.png">
+<meta property="article:published_time" content="2021-05-22T15:04:00.000Z">
+<meta property="article:modified_time" content="2021-05-22T15:11:36.111Z">
+<meta property="article:author" content="Jinondo">
+<meta property="article:tag" content="Java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC05%E7%AB%A0_%E6%A0%88%E6%A1%A2%E5%86%85%E9%83%A8%E7%BB%93%E6%9E%84.jpg">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://jinondo.github.io/2021/05/22/JVM-Note/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Jinondo&#39;s Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
 
-var getCookies = function (name) {
-  const value = `; ${document.cookie}`
-  const parts = value.split(`; ${name}=`)
-  if (parts.length === 2) return parts.pop().split(';').shift()
-}
+  
+  
+  
+  
+<meta name="generator" content="Hexo 4.2.1"></head>
 
-var autoChangeMode = 'false'
-var t = getCookies('theme')
-if (autoChangeMode === '1') {
-  var isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
-  var isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
-  var isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
-  var hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
 
-  if (t === undefined) {
-    if (isLightMode) activateLightMode()
-    else if (isDarkMode) activateDarkMode()
-    else if (isNotSpecified || hasNoSupport) {
-      console.log('You specified no preference for a color scheme or your browser does not support it. I Schedule dark mode during night time.')
-      var now = new Date()
-      var hour = now.getHours()
-      var isNight = hour <= 6 || hour >= 18
-      isNight ? activateDarkMode() : activateLightMode()
-    }
-    window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
-      if (Cookies.get('theme') === undefined) {
-        e.matches ? activateDarkMode() : activateLightMode()
-      }
-    })
-  } else if (t === 'light') activateLightMode()
-  else activateDarkMode()
-} else if (autoChangeMode === '2') {
-  now = new Date()
-  hour = now.getHours()
-  isNight = hour <= 6 || hour >= 18
-  if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
-  else if (t === 'light') activateLightMode()
-  else activateDarkMode()
-} else {
-  if (t === 'dark') activateDarkMode()
-  else if (t === 'light') activateLightMode()
-}</script><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css"><link rel="next" title="哈希表与字符串" href="https://jinondo.github.io/2021/03/03/%E5%93%88%E5%B8%8C%E8%A1%A8%E4%B8%8E%E5%AD%97%E7%AC%A6%E4%B8%B2/"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Titillium+Web&amp;display=swap"><script>var GLOBAL_CONFIG = { 
-  root: '/',
-  algolia: undefined,
-  localSearch: undefined,
-  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
-  copy: {
-    success: '复制成功',
-    error: '复制错误',
-    noSupport: '浏览器不支持'
-  },
-  bookmark: {
-    message_prev: '按',
-    message_next: '键将本页加入书签'
-  },
-  runtime_unit: '天',
-  runtime: false,
-  copyright: undefined,
-  ClickShowText: {"text":"WDNMD,THE,END,OF,THE,FXXKING,WORLD","fontSize":"15px"},
-  medium_zoom: false,
-  fancybox: true,
-  Snackbar: undefined,
-  justifiedGallery: {
-    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
-    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
-  },
-  baiduPush: false,
-  highlightCopy: true,
-  highlightLang: true,
-  isPhotoFigcaption: false,
-  islazyload: true,
-  isanchor: false    
-}</script><script>var GLOBAL_CONFIG_SITE = { 
-  isPost: true,
-  isHome: false,
-  isHighlightShrink: false,
-  isSidebar: true
-  }</script><noscript><style>
-#nav {
-  opacity: 1
-}
-.justified-gallery img{
-  opacity: 1
-}
-</style></noscript><meta name="generator" content="Hexo 4.2.1"></head><body><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/cytAvatar.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">24</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">4</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down menus-expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div id="sidebar"><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Interview-JVM"><span class="toc-number">1.</span> <span class="toc-text">Interview JVM</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#虚拟机栈"><span class="toc-number">1.1.</span> <span class="toc-text">虚拟机栈</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#局部变量表"><span class="toc-number">1.1.1.</span> <span class="toc-text">局部变量表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#栈中可能会出现的异常"><span class="toc-number">1.1.2.</span> <span class="toc-text">栈中可能会出现的异常</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#动态链接"><span class="toc-number">1.1.3.</span> <span class="toc-text">动态链接</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#堆"><span class="toc-number">1.2.</span> <span class="toc-text">堆</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#运行时参数"><span class="toc-number">1.2.1.</span> <span class="toc-text">运行时参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#对象分配过程"><span class="toc-number">1.2.2.</span> <span class="toc-text">对象分配过程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#三种GC类型"><span class="toc-number">1.2.3.</span> <span class="toc-text">三种GC类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#TLAB"><span class="toc-number">1.2.4.</span> <span class="toc-text">TLAB</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#参数总结"><span class="toc-number">1.2.5.</span> <span class="toc-text">参数总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#堆是分配对象的唯一选择吗？"><span class="toc-number">1.2.6.</span> <span class="toc-text">堆是分配对象的唯一选择吗？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#方法区"><span class="toc-number">1.3.</span> <span class="toc-text">方法区</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#储存内容"><span class="toc-number">1.3.1.</span> <span class="toc-text">储存内容</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#运行时常量池-vs-常量池"><span class="toc-number">1.3.2.</span> <span class="toc-text">运行时常量池 vs 常量池</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#方法区和栈的调用："><span class="toc-number">1.3.3.</span> <span class="toc-text">方法区和栈的调用：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#方法区变迁"><span class="toc-number">1.3.4.</span> <span class="toc-text">方法区变迁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#关于静态变量"><span class="toc-number">1.3.5.</span> <span class="toc-text">关于静态变量</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#关于对象"><span class="toc-number">1.4.</span> <span class="toc-text">关于对象</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#创建对象的方式"><span class="toc-number">1.4.1.</span> <span class="toc-text">创建对象的方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#对象的内存布局"><span class="toc-number">1.4.2.</span> <span class="toc-text">对象的内存布局</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#对象的定位"><span class="toc-number">1.4.3.</span> <span class="toc-text">对象的定位</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#直接内存"><span class="toc-number">1.5.</span> <span class="toc-text">直接内存</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#执行引擎"><span class="toc-number">1.6.</span> <span class="toc-text">执行引擎</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#垃圾回收"><span class="toc-number">1.7.</span> <span class="toc-text">垃圾回收</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#标记阶段"><span class="toc-number">1.7.1.</span> <span class="toc-text">标记阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#finalize"><span class="toc-number">1.7.2.</span> <span class="toc-text">finalize</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#清除阶段"><span class="toc-number">1.7.3.</span> <span class="toc-text">清除阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#相关概念"><span class="toc-number">1.7.4.</span> <span class="toc-text">相关概念</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#System-gc"><span class="toc-number">1.7.4.1.</span> <span class="toc-text">System.gc()</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#内存泄漏"><span class="toc-number">1.7.4.2.</span> <span class="toc-text">内存泄漏</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#安全点和安全区域"><span class="toc-number">1.7.4.3.</span> <span class="toc-text">安全点和安全区域</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#强软弱虚"><span class="toc-number">1.7.4.4.</span> <span class="toc-text">强软弱虚</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#垃圾回收器"><span class="toc-number">1.7.5.</span> <span class="toc-text">垃圾回收器</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#几种垃圾回收器"><span class="toc-number">1.7.5.1.</span> <span class="toc-text">几种垃圾回收器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Serial-回收器：串行回收"><span class="toc-number">1.7.5.2.</span> <span class="toc-text">Serial 回收器：串行回收</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ParNew-回收器：并行回收"><span class="toc-number">1.7.5.3.</span> <span class="toc-text">ParNew 回收器：并行回收</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Parallel-Scavenge-收集器：吞吐量优先"><span class="toc-number">1.7.5.4.</span> <span class="toc-text">Parallel Scavenge 收集器：吞吐量优先</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CMS-垃圾回收器"><span class="toc-number">1.7.5.5.</span> <span class="toc-text">CMS 垃圾回收器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#G1-回收器"><span class="toc-number">1.7.5.6.</span> <span class="toc-text">G1 回收器</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#GC日志"><span class="toc-number">1.7.6.</span> <span class="toc-text">GC日志</span></a></li></ol></li></ol></li></ol></div></div></div><div id="body-wrap"><div id="web_bg" data-type="color"></div><header class="post-bg" id="page-header" style="background-image: url(/img/radiohead.jpg)"><nav id="nav"><span class="pull-left" id="blog_name"><a class="blog_title" id="site-name" href="/">Jinondo's Blog</a></span><span class="pull-right menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down menus-expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><span class="toggle-menu close"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">JVM-Notes</div></div><div id="post-meta"><div class="meta-firstline"><time class="post-meta__date"><span class="post-meta__date-created" title="发表于 2021-05-22 23:04:00"><i class="far fa-calendar-alt fa-fw"></i> 发表于 2021-05-22</span><span class="post-meta__separator">|</span><span class="post-meta__date-updated" title="更新于 2021-05-22 23:11:36"><i class="fas fa-history fa-fw"></i> 更新于 2021-05-22</span></time></div><div class="meta-secondline"> </div><div class="meta-thirdline"><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta__icon"></i><span>阅读量:</span><span id="busuanzi_value_page_pv"></span></span><span class="post-meta-commentcount"></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><h1 id="Interview-JVM"><a href="#Interview-JVM" class="headerlink" title="Interview JVM"></a>Interview JVM</h1><p>ps: 本笔记记录宋红康JVM教程</p>
-<h2 id="虚拟机栈"><a href="#虚拟机栈" class="headerlink" title="虚拟机栈"></a>虚拟机栈</h2><p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC05%E7%AB%A0_%E6%A0%88%E6%A1%A2%E5%86%85%E9%83%A8%E7%BB%93%E6%9E%84.jpg" alt=""></p>
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/cofess" target="_blank">
+          <img class="img-circle img-rotate" src="/images/cytAvatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">Jinondo</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Jinondo&#39;s Blog</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shantou, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/cofess" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/cofess" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/iwebued" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/cofess" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo%E5%8D%9A%E5%AE%A2/" rel="tag">Hexo博客</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MATLAB/" rel="tag">MATLAB</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%AE%97%E6%B3%95/" rel="tag">算法</a><span class="tag-list-count">13</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Hexo%E5%8D%9A%E5%AE%A2/" style="font-size: 13.33px;">Hexo博客</a> <a href="/tags/Java/" style="font-size: 13px;">Java</a> <a href="/tags/MATLAB/" style="font-size: 13.67px;">MATLAB</a> <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 14px;">算法</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">五月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">三月 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">十月 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">九月 2020</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a><span class="archive-list-count">9</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2021/05/22/JVM-Note/" class="title">JVM-Notes</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-05-22T15:04:00.000Z" itemprop="datePublished">2021-05-22</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2021/03/03/%E5%93%88%E5%B8%8C%E8%A1%A8%E4%B8%8E%E5%AD%97%E7%AC%A6%E4%B8%B2/" class="title">哈希表与字符串</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-03-03T11:52:15.000Z" itemprop="datePublished">2021-03-03</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/10/04/%E4%BA%8C%E5%8F%89%E6%A0%91%E4%B8%8E%E5%9B%BE/" class="title">二叉树与图算法例子【总】</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-10-04T07:28:19.000Z" itemprop="datePublished">2020-10-04</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/09/26/%E9%80%92%E5%BD%92-%E5%9B%9E%E6%BA%AF-%E5%88%86%E6%B2%BB/" class="title">递归-回溯-分治算法例子【总】</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-09-26T12:23:35.000Z" itemprop="datePublished">2020-09-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/09/17/%E8%B4%AA%E5%BF%83%E6%B3%95%E7%AE%97%E6%B3%95%E4%BE%8B%E5%AD%90/" class="title">贪心法算法例子【总】</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-09-17T12:35:53.000Z" itemprop="datePublished">2020-09-17</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-JVM-Note" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      JVM-Notes
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2021/05/22/JVM-Note/" class="article-date">
+	  <time datetime="2021-05-22T15:04:00.000Z" itemprop="datePublished">2021-05-22</time>
+	</a>
+</span>
+        
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link" href="/tags/Java/" rel="tag">Java</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2021/05/22/JVM-Note/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h1 id="Interview-JVM"><a href="#Interview-JVM" class="headerlink" title="Interview JVM"></a>Interview JVM</h1><p>ps: 本笔记记录宋红康JVM教程</p>
+<h2 id="虚拟机栈"><a href="#虚拟机栈" class="headerlink" title="虚拟机栈"></a>虚拟机栈</h2><p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC05%E7%AB%A0_%E6%A0%88%E6%A1%A2%E5%86%85%E9%83%A8%E7%BB%93%E6%9E%84.jpg" alt=""></p>
 <ul>
 <li>每个栈帧中存储着：<ul>
 <li>局部变量表 Local Variables</li>
@@ -159,7 +461,7 @@ if (autoChangeMode === '1') {
 <p><strong>方法的重写 &amp; 虚方法表</strong></p>
 <p>简单说就是得到这个方法名称，看这个类中有没有和这个名称和描述相同的方法，没有就一层层向父类去搜索和验证，故提高性能就是用了虚方法表（非虚方法不需要表，因为已经编译期确定了）</p>
 <p>例如：</p>
-<p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/image-20210520121658269.png" alt=""></p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/image-20210520121658269.png" alt=""></p>
 <h2 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h2><ul>
 <li>每一个 JVM 实例只存在一个堆内存</li>
 <li>堆里除了放对象实例，也可能会放引用（例如成员变量，它的实体和引用都放在堆里，如果是方法中的局部变量，则引用放在栈里的局部变量表里）</li>
@@ -236,7 +538,7 @@ if (autoChangeMode === '1') {
 <li>一旦对象在TLAB分配内存失败，jvm就会尝试着通过加锁机制确保数据操作的原子性，从而直接在Eden空间中分配内存。</li>
 </ul>
 </blockquote>
-<h3 id="参数总结"><a href="#参数总结" class="headerlink" title="参数总结"></a>参数总结</h3><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/image-20210520171750709.png" style="zoom: 80%;" />
+<h3 id="参数总结"><a href="#参数总结" class="headerlink" title="参数总结"></a>参数总结</h3><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/image-20210520171750709.png" style="zoom: 80%;" />
 
 <p><strong>空间分配担保</strong></p>
 <p>在发生MinorGC之前，虚拟机会检查老年代最大可用的连续空间是否大于新生代所有对象的总空间，</p>
@@ -274,7 +576,7 @@ if (autoChangeMode === '1') {
 <p>上面提到的逃逸分析栈上分配，技术不算十分成熟，故其实不被应用，上面的例子看到的效果其实都是基于标量替换而已，并没有进行对象的栈上分配（对象分离出来了就不是对象了，当然就在栈上）。</p>
 <p>而且后来的元空间中字符串常量池和静态变量也分配到了堆上，也进一步说明对象实例就是分配在堆上的。</p>
 </blockquote>
-<h2 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h2><p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E6%96%B9%E5%BC%8F2%EF%BC%9A%E4%BD%BF%E7%94%A8%E7%9B%B4%E6%8E%A5%E6%8C%87%E9%92%88%E8%AE%BF%E9%97%AE.jpg" alt=""></p>
+<h2 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h2><p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E6%96%B9%E5%BC%8F2%EF%BC%9A%E4%BD%BF%E7%94%A8%E7%9B%B4%E6%8E%A5%E6%8C%87%E9%92%88%E8%AE%BF%E9%97%AE.jpg" alt=""></p>
 <ul>
 <li><p>1.7 的方法区叫永久代，分配在java内存中，导致很容易触发OOM，1.8换成元空间，且分配在本地内存上，则不容易发生OOM</p>
 </li>
@@ -291,7 +593,7 @@ if (autoChangeMode === '1') {
 <h3 id="运行时常量池-vs-常量池"><a href="#运行时常量池-vs-常量池" class="headerlink" title="运行时常量池 vs 常量池"></a>运行时常量池 vs 常量池</h3><p>字节码文件中时常量池,通过类加载器加载到内存的方法区中就是运行时常量池，常量池里放的是字符引用，但运行时常量池则具有动态性，它换成了真实的地址。</p>
 <p><strong>为什么需要运行时常量池</strong></p>
 <p>因为常量池表中有各种字面量和对类型和方法的符号引用,java中的字节码需要数据支持,但数据太大不能存到字节码里,所以用符号引用,在动态链接时可以使用到常量池。</p>
-<h3 id="方法区和栈的调用："><a href="#方法区和栈的调用：" class="headerlink" title="方法区和栈的调用："></a>方法区和栈的调用：</h3><p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210520205458.png" alt=""></p>
+<h3 id="方法区和栈的调用："><a href="#方法区和栈的调用：" class="headerlink" title="方法区和栈的调用："></a>方法区和栈的调用：</h3><p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210520205458.png" alt=""></p>
 <p>可以看出字节码是放在方法区中的。</p>
 <h3 id="方法区变迁"><a href="#方法区变迁" class="headerlink" title="方法区变迁"></a>方法区变迁</h3><p>为什么要把永久代换成元空间</p>
 <ol>
@@ -316,7 +618,7 @@ if (autoChangeMode === '1') {
 <li>使用反序列化，从文件中，从网络中获取一个对象的二进制流</li>
 <li>第三方库Objenesis</li>
 </ol>
-<p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521151357.png" alt=""></p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521151357.png" alt=""></p>
 <ol>
 <li>虚拟机遇到一条new指令，首先去检查这个指令的参数能否在元空间的常量池中定位到一个类的符号引用，并且检查这个符号引用代表的类是否已经被加载链接和初始化（即判断类元信息是否存在），如果没有，就在双亲委派机制下，使用当前类加载器以ClassLoader+包名+类名为key找到对应的class文件，如果没有找到文件，则抛出ClassNotFoundException。如果找到，则进行类加载，并生成对应的Class类对象。</li>
 <li>为对象分配内存，规整不规整的问题，选择哪种分配方式有Java堆是否规整决定，而java堆是否规整又由所采用的垃圾收集器是否带有压缩整理功能决定。</li>
@@ -334,18 +636,18 @@ if (autoChangeMode === '1') {
 <p>指上方的第一点，属性的默认初始化</p>
 <p>5.设置对象头：将对象的所属类（类的元数据信息）、对象的HashCode和对象的GC信息，锁信息等数据储存在对象的对象头中，这个过程的具体设置方式取决于JVM实现。</p>
 <p>6.执行init初始化，指上面的2和3：显示初始化 / 代码块中初始化 和 构造器中初始化</p>
-<h3 id="对象的内存布局"><a href="#对象的内存布局" class="headerlink" title="对象的内存布局"></a>对象的内存布局</h3><p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521154239.png" alt=""></p>
+<h3 id="对象的内存布局"><a href="#对象的内存布局" class="headerlink" title="对象的内存布局"></a>对象的内存布局</h3><p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521154239.png" alt=""></p>
 <p>例子：</p>
-<p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E5%9B%BE%E7%A4%BA%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80.jpg" alt=""></p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E5%9B%BE%E7%A4%BA%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80.jpg" alt=""></p>
 <h3 id="对象的定位"><a href="#对象的定位" class="headerlink" title="对象的定位"></a>对象的定位</h3><p>主要有两种定位方式：</p>
 <ol>
 <li>句柄访问</li>
 </ol>
-<p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E6%96%B9%E5%BC%8F1%EF%BC%9A%E5%8F%A5%E6%9F%84%E8%AE%BF%E9%97%AE.jpg" alt=""></p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E6%96%B9%E5%BC%8F1%EF%BC%9A%E5%8F%A5%E6%9F%84%E8%AE%BF%E9%97%AE.jpg" alt=""></p>
 <ol start="2">
 <li>直接指针（Hotspot默认）</li>
 </ol>
-<p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E6%96%B9%E5%BC%8F2%EF%BC%9A%E4%BD%BF%E7%94%A8%E7%9B%B4%E6%8E%A5%E6%8C%87%E9%92%88%E8%AE%BF%E9%97%AE.jpg" alt=""></p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E6%96%B9%E5%BC%8F2%EF%BC%9A%E4%BD%BF%E7%94%A8%E7%9B%B4%E6%8E%A5%E6%8C%87%E9%92%88%E8%AE%BF%E9%97%AE.jpg" alt=""></p>
 <blockquote>
 <p>优缺点：</p>
 <p>句柄访问优点是在更改对象实例的地址时，栈里的本地变量表不需要做修改；缺点就是得咋堆里再开一块空间放句柄池</p>
@@ -397,7 +699,7 @@ if (autoChangeMode === '1') {
 <li>虚拟机内部的引用（基本数据类型对应的Class对象，常驻异常对象，系统类加载器）</li>
 <li>其他。。。</li>
 </ul>
-<p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521215952.png" alt=""></p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521215952.png" alt=""></p>
 <p>上面图片第一点：例如分代垃圾回收对新生代回收，那么老年代也可能有对新生代中对象的一个引用，所以也要把老年代中的引用看成GC Roots。</p>
 <h3 id="finalize"><a href="#finalize" class="headerlink" title="finalize"></a>finalize</h3><p>永远不要主动调用finalize方法，应该交给垃圾回收机制调用。</p>
 <p>理由：</p>
@@ -419,7 +721,7 @@ if (autoChangeMode === '1') {
 <li>不可触及的：对象的 finalize 被调用，并且没有复活，那么就会进入不可触及状态。不可触及状态不可能被复活，因为finalize只会被调用一次</li>
 </ol>
 <p>以上只有在对象不可触及时才可以被回收。</p>
-<p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521224314.png" alt=""></p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521224314.png" alt=""></p>
 <blockquote>
 <p>查看GCRoots的工具：用jvisualm导出dump，然后用Eclipse MAT打开dump查看</p>
 <p>或者用JProfiler进行GCroots溯源</p>
@@ -448,7 +750,7 @@ if (autoChangeMode === '1') {
 </blockquote>
 <p>:two: 复制算法</p>
 <p>看图：</p>
-<img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC14%E7%AB%A0_%E5%A4%8D%E5%88%B6%E7%AE%97%E6%B3%95.jpg" style="zoom: 40%;" />
+<img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC14%E7%AB%A0_%E5%A4%8D%E5%88%B6%E7%AE%97%E6%B3%95.jpg" style="zoom: 40%;" />
 
 <p>检索到有引用关系就直接复制，没有标记和清除过程</p>
 <p>优点：</p>
@@ -473,7 +775,7 @@ if (autoChangeMode === '1') {
 <li>第二阶段把所有存活对象压缩到内存的一端，按顺序排放</li>
 <li>之后，清理边界外所有的空间</li>
 </ul>
-<img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC14%E7%AB%A0_%E6%A0%87%E8%AE%B0-%E5%8E%8B%E7%BC%A9%E7%AE%97%E6%B3%95.jpg" style="zoom:40%;" />
+<img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC14%E7%AB%A0_%E6%A0%87%E8%AE%B0-%E5%8E%8B%E7%BC%A9%E7%AE%97%E6%B3%95.jpg" style="zoom:40%;" />
 
 
 
@@ -534,7 +836,7 @@ if (autoChangeMode === '1') {
 <blockquote>
 <p>关键是能让程序进行安全的GC，我的理解是安全点是让线程停在点上，区域是说可以让线程继续跑，因为没有引用变化。</p>
 </blockquote>
-<h4 id="强软弱虚"><a href="#强软弱虚" class="headerlink" title="强软弱虚"></a>强软弱虚</h4><p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522120445.png" alt=""></p>
+<h4 id="强软弱虚"><a href="#强软弱虚" class="headerlink" title="强软弱虚"></a>强软弱虚</h4><p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522120445.png" alt=""></p>
 <ol>
 <li><p>强引用：不回收</p>
 </li>
@@ -560,9 +862,9 @@ if (autoChangeMode === '1') {
 <li>按工作的内存区间。</li>
 </ol>
 <p><strong>性能指标</strong></p>
-<p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC17%E7%AB%A0_%E5%90%9E%E5%90%90%E9%87%8F%E4%B8%8E%E6%9A%82%E5%81%9C%E6%97%B6%E9%97%B4.jpg" alt=""></p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC17%E7%AB%A0_%E5%90%9E%E5%90%90%E9%87%8F%E4%B8%8E%E6%9A%82%E5%81%9C%E6%97%B6%E9%97%B4.jpg" alt=""></p>
 <p>现在的标准是，保证了停顿时间，去最大程度加大吞吐量。</p>
-<h4 id="几种垃圾回收器"><a href="#几种垃圾回收器" class="headerlink" title="几种垃圾回收器"></a>几种垃圾回收器</h4><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC17%E7%AB%A0_%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E7%BB%84%E5%90%88.jpg" style="zoom:50%;" />
+<h4 id="几种垃圾回收器"><a href="#几种垃圾回收器" class="headerlink" title="几种垃圾回收器"></a>几种垃圾回收器</h4><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC17%E7%AB%A0_%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E7%BB%84%E5%90%88.jpg" style="zoom:50%;" />
 
 <p>图片截止至JDK14</p>
 <p>JDK8中使用的是 parallel scavenge GC 和 parallel old GC。</p>
@@ -607,7 +909,7 @@ if (autoChangeMode === '1') {
 <li>在G1出现之前应用广泛</li>
 <li>对于老年代的收集，配合使用见上图</li>
 </ul>
-<p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522160421.png" alt=""></p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522160421.png" alt=""></p>
 <ol>
 <li>初始标记：只是标记和GC Root直接相关联的对象，速度较快，STW时间短</li>
 <li>并发标记：遍历整个对象图和引用链</li>
@@ -647,7 +949,7 @@ if (autoChangeMode === '1') {
 <li><p>并行与并发：可以有多个GC线程同时工作，此时用户线程STW；可以有工作线程和应用程序同时执行。</p>
 </li>
 <li><p>分代收集，同时兼顾年轻代和老年代</p>
-<p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522184858.png" alt=""></p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522184858.png" alt=""></p>
 </li>
 <li><p>空间整合</p>
 <ul>
@@ -734,9 +1036,231 @@ if (autoChangeMode === '1') {
 </li>
 <li>标记完进行混合回收，其中的老年代回收会根据回收价值（有一个阈值，垃圾占比，默认65%）去优先队列取小部分老年代region，而不是所有</li>
 </ul>
-<h3 id="GC日志"><a href="#GC日志" class="headerlink" title="GC日志"></a>GC日志</h3><p><img src= "/img/loading.gif" data-src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522214808.png" alt=""></p>
+<h3 id="GC日志"><a href="#GC日志" class="headerlink" title="GC日志"></a>GC日志</h3><p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522214808.png" alt=""></p>
 <blockquote>
 <p>未来发展：ZGC</p>
 </blockquote>
 <p><code>jinfo -flag NewRatio pid</code> 可以查看设置的jvm参数，NewRatio 可以替换</p>
-</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">Jinondo</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://jinondo.github.io/2021/05/22/JVM-Note/">https://jinondo.github.io/2021/05/22/JVM-Note/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://jinondo.github.io" target="_blank">Jinondo's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Java/">Java</a></div><div class="post_share"><div class="social-share" data-image="/img/radiohead.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"/><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js"></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2021/03/03/%E5%93%88%E5%B8%8C%E8%A1%A8%E4%B8%8E%E5%AD%97%E7%AC%A6%E4%B8%B2/"><img class="next-cover" data-src="/img/default4.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">哈希表与字符串</div></div></a></div></nav></article></main><footer id="footer" data-type="color"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2021 By Jinondo</div><div class="framework-info"><span>驱动 </span><a href="https://hexo.io" target="_blank" rel="noopener"><span>Hexo</span></a><span class="footer-separator">|</span><span>主题 </span><a href="https://github.com/jerryc127/hexo-theme-butterfly" target="_blank" rel="noopener"><span>Butterfly</span></a></div></div></footer></div><section class="rightside" id="rightside"><div id="rightside-config-hide"><button id="readmode" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font_plus" title="放大字体"><i class="fas fa-plus"></i></button><button id="font_minus" title="缩小字体"><i class="fas fa-minus"></i></button><button class="translate_chn_to_cht" id="translateLink" title="简繁转换">繁</button><button id="darkmode" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" title="设置"><i class="fas fa-cog"></i></button><button class="close" id="mobile-toc-button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js" async></script><script src="/js/third-party/ClickShowText.js"></script></body></html>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://jinondo.github.io/2021/05/22/JVM-Note/" title="JVM-Notes" target="_blank" rel="external">https://jinondo.github.io/2021/05/22/JVM-Note/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/cofess" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/cytAvatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/cofess" target="_blank"><span class="text-dark">Jinondo</span><small class="ml-1x">Jinondo&#39;s Blog</small></a></h3>
+        <div>这写的是锤子博客orz</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    
+    <li class="next">
+      <a href="/2021/03/03/%E5%93%88%E5%B8%8C%E8%A1%A8%E4%B8%8E%E5%AD%97%E7%AC%A6%E4%B8%B2/" title="哈希表与字符串"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/cofess" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/cofess" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/iwebued" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/cofess" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
