@@ -17,10 +17,10 @@
   <meta http-equiv="window-target" content="_top" />
   
   
-  <title>JVM-Notes | Hexo</title>
+  <title>JVM学习笔记 | Jinondo&#39;s Blog</title>
   <meta name="description" content="Interview JVMps: 本笔记记录宋红康JVM教程 虚拟机栈  每个栈帧中存储着： 局部变量表 Local Variables 操作数栈 Operand stack 动态链接 Dynamic Linking 方法返回地址 Return Address 一些附加信息   内部保存一个个栈帧，对应着一次次的java方法调用 作用：主管java程序的运行，它保存方法的局部变量（8种基本数据类型">
 <meta property="og:type" content="article">
-<meta property="og:title" content="JVM-Notes">
+<meta property="og:title" content="JVM学习笔记">
 <meta property="og:url" content="https://jinondo.github.io/2021/05/22/JVM-Note/index.html">
 <meta property="og:site_name" content="Jinondo&#39;s Blog">
 <meta property="og:description" content="Interview JVMps: 本笔记记录宋红康JVM教程 虚拟机栈  每个栈帧中存储着： 局部变量表 Local Variables 操作数栈 Operand stack 动态链接 Dynamic Linking 方法返回地址 Return Address 一些附加信息   内部保存一个个栈帧，对应着一次次的java方法调用 作用：主管java程序的运行，它保存方法的局部变量（8种基本数据类型">
@@ -46,7 +46,7 @@
 <meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522184858.png">
 <meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522214808.png">
 <meta property="article:published_time" content="2021-05-22T15:04:00.000Z">
-<meta property="article:modified_time" content="2021-05-22T15:11:36.111Z">
+<meta property="article:modified_time" content="2021-05-22T15:04:00.000Z">
 <meta property="article:author" content="Jinondo">
 <meta property="article:tag" content="Java">
 <meta name="twitter:card" content="summary">
@@ -57,7 +57,7 @@
     <link rel="alternate" href="/atom.xml" title="Jinondo&#39;s Blog" type="application/atom+xml">
   
   
-    <link rel="icon" href="/favicon.png" type="image/x-icon">
+    <link rel="icon" href="/cytlogo.png" type="image/x-icon">
   
   
 <link rel="stylesheet" href="/css/style.css">
@@ -66,7 +66,7 @@
   
   
   
-<meta name="generator" content="Hexo 4.2.1"></head>
+<meta name="generator" content="Hexo 5.4.0"></head>
 
 
 <body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
@@ -117,7 +117,7 @@
       </button>
     </div>
     <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
-      <ul class="nav navbar-nav main-nav ">
+      <ul class="nav navbar-nav main-nav menu-highlight">
         
         
         <li class="menu-item menu-item-home">
@@ -237,6 +237,13 @@
 
     
       
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
 
     
       
@@ -278,10 +285,10 @@
             
             <div class="item-inner">
               <p class="item-category">
-                
+                <a class="category-link" href="/categories/Java/">Java</a>
               </p>
               <p class="item-title">
-                <a href="/2021/05/22/JVM-Note/" class="title">JVM-Notes</a>
+                <a href="/2021/05/22/JVM-Note/" class="title">JVM学习笔记</a>
               </p>
               <p class="item-date">
                 <time datetime="2021-05-22T15:04:00.000Z" itemprop="datePublished">2021-05-22</time>
@@ -369,7 +376,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      JVM-Notes
+      JVM学习笔记
     </h1>
   
 
@@ -382,10 +389,15 @@
 	</a>
 </span>
         
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </span>
+
         
   <span class="article-tag">
     <i class="icon icon-tags"></i>
-	<a class="article-tag-link" href="/tags/Java/" rel="tag">Java</a>
+	<a class="article-tag-link-link" href="/tags/Java/" rel="tag">Java</a>
   </span>
 
 
@@ -398,7 +410,7 @@
     <div class="article-entry marked-body" itemprop="articleBody">
       
         <h1 id="Interview-JVM"><a href="#Interview-JVM" class="headerlink" title="Interview JVM"></a>Interview JVM</h1><p>ps: 本笔记记录宋红康JVM教程</p>
-<h2 id="虚拟机栈"><a href="#虚拟机栈" class="headerlink" title="虚拟机栈"></a>虚拟机栈</h2><p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC05%E7%AB%A0_%E6%A0%88%E6%A1%A2%E5%86%85%E9%83%A8%E7%BB%93%E6%9E%84.jpg" alt=""></p>
+<h2 id="虚拟机栈"><a href="#虚拟机栈" class="headerlink" title="虚拟机栈"></a>虚拟机栈</h2><p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC05%E7%AB%A0_%E6%A0%88%E6%A1%A2%E5%86%85%E9%83%A8%E7%BB%93%E6%9E%84.jpg"></p>
 <ul>
 <li>每个栈帧中存储着：<ul>
 <li>局部变量表 Local Variables</li>
@@ -416,7 +428,7 @@
 <li>在局部变量表里，32位以内的类型占用一个 slot，64位的类型（long和double）占用两个slot</li>
 <li>一个面试题：</li>
 </ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i1 = <span class="number">10</span>;</span><br><span class="line">    i1 = i1++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> i2 = <span class="number">10</span>;</span><br><span class="line">    i2 = ++i2;</span><br><span class="line"></span><br><span class="line">    System.out.println(i1 +<span class="string">"---"</span>+i2);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> i3 = <span class="number">10</span>;</span><br><span class="line">    <span class="keyword">int</span> i4 = i3++ + ++i3;</span><br><span class="line">    System.out.println(i3 +<span class="string">"---"</span>+i4);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i1 = <span class="number">10</span>;</span><br><span class="line">    i1 = i1++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> i2 = <span class="number">10</span>;</span><br><span class="line">    i2 = ++i2;</span><br><span class="line"></span><br><span class="line">    System.out.println(i1 +<span class="string">&quot;---&quot;</span>+i2);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> i3 = <span class="number">10</span>;</span><br><span class="line">    <span class="keyword">int</span> i4 = i3++ + ++i3;</span><br><span class="line">    System.out.println(i3 +<span class="string">&quot;---&quot;</span>+i4);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">10---11</span><br><span class="line">12---22</span><br></pre></td></tr></table></figure>
 
@@ -461,7 +473,7 @@
 <p><strong>方法的重写 &amp; 虚方法表</strong></p>
 <p>简单说就是得到这个方法名称，看这个类中有没有和这个名称和描述相同的方法，没有就一层层向父类去搜索和验证，故提高性能就是用了虚方法表（非虚方法不需要表，因为已经编译期确定了）</p>
 <p>例如：</p>
-<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/image-20210520121658269.png" alt=""></p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/image-20210520121658269.png"></p>
 <h2 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h2><ul>
 <li>每一个 JVM 实例只存在一个堆内存</li>
 <li>堆里除了放对象实例，也可能会放引用（例如成员变量，它的实体和引用都放在堆里，如果是方法中的局部变量，则引用放在栈里的局部变量表里）</li>
@@ -544,7 +556,7 @@
 <p>在发生MinorGC之前，虚拟机会检查老年代最大可用的连续空间是否大于新生代所有对象的总空间，</p>
 <ul>
 <li>如果大于，则此次MinorGC是安全的</li>
-<li>如果小于，则看<code>-XX:HandlePromotionFailure</code> 设置值是否允许担保失败<ul>
+<li>如果小于，则看<code>-XX:HandlePromotionFailure </code> 设置值是否允许担保失败<ul>
 <li>如果为True，则会继续检查老年代可用连续空间是否大于历次晋升到老年代的对象的平均大小<ul>
 <li>如果大于：则尝试进行一次Minor GC，这次YGC依然有风险</li>
 <li>如果小于，则进行一次Full GC</li>
@@ -576,7 +588,7 @@
 <p>上面提到的逃逸分析栈上分配，技术不算十分成熟，故其实不被应用，上面的例子看到的效果其实都是基于标量替换而已，并没有进行对象的栈上分配（对象分离出来了就不是对象了，当然就在栈上）。</p>
 <p>而且后来的元空间中字符串常量池和静态变量也分配到了堆上，也进一步说明对象实例就是分配在堆上的。</p>
 </blockquote>
-<h2 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h2><p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E6%96%B9%E5%BC%8F2%EF%BC%9A%E4%BD%BF%E7%94%A8%E7%9B%B4%E6%8E%A5%E6%8C%87%E9%92%88%E8%AE%BF%E9%97%AE.jpg" alt=""></p>
+<h2 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h2><p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E6%96%B9%E5%BC%8F2%EF%BC%9A%E4%BD%BF%E7%94%A8%E7%9B%B4%E6%8E%A5%E6%8C%87%E9%92%88%E8%AE%BF%E9%97%AE.jpg"></p>
 <ul>
 <li><p>1.7 的方法区叫永久代，分配在java内存中，导致很容易触发OOM，1.8换成元空间，且分配在本地内存上，则不容易发生OOM</p>
 </li>
@@ -593,7 +605,7 @@
 <h3 id="运行时常量池-vs-常量池"><a href="#运行时常量池-vs-常量池" class="headerlink" title="运行时常量池 vs 常量池"></a>运行时常量池 vs 常量池</h3><p>字节码文件中时常量池,通过类加载器加载到内存的方法区中就是运行时常量池，常量池里放的是字符引用，但运行时常量池则具有动态性，它换成了真实的地址。</p>
 <p><strong>为什么需要运行时常量池</strong></p>
 <p>因为常量池表中有各种字面量和对类型和方法的符号引用,java中的字节码需要数据支持,但数据太大不能存到字节码里,所以用符号引用,在动态链接时可以使用到常量池。</p>
-<h3 id="方法区和栈的调用："><a href="#方法区和栈的调用：" class="headerlink" title="方法区和栈的调用："></a>方法区和栈的调用：</h3><p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210520205458.png" alt=""></p>
+<h3 id="方法区和栈的调用："><a href="#方法区和栈的调用：" class="headerlink" title="方法区和栈的调用："></a>方法区和栈的调用：</h3><p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210520205458.png"></p>
 <p>可以看出字节码是放在方法区中的。</p>
 <h3 id="方法区变迁"><a href="#方法区变迁" class="headerlink" title="方法区变迁"></a>方法区变迁</h3><p>为什么要把永久代换成元空间</p>
 <ol>
@@ -618,7 +630,7 @@
 <li>使用反序列化，从文件中，从网络中获取一个对象的二进制流</li>
 <li>第三方库Objenesis</li>
 </ol>
-<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521151357.png" alt=""></p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521151357.png"></p>
 <ol>
 <li>虚拟机遇到一条new指令，首先去检查这个指令的参数能否在元空间的常量池中定位到一个类的符号引用，并且检查这个符号引用代表的类是否已经被加载链接和初始化（即判断类元信息是否存在），如果没有，就在双亲委派机制下，使用当前类加载器以ClassLoader+包名+类名为key找到对应的class文件，如果没有找到文件，则抛出ClassNotFoundException。如果找到，则进行类加载，并生成对应的Class类对象。</li>
 <li>为对象分配内存，规整不规整的问题，选择哪种分配方式有Java堆是否规整决定，而java堆是否规整又由所采用的垃圾收集器是否带有压缩整理功能决定。</li>
@@ -636,18 +648,18 @@
 <p>指上方的第一点，属性的默认初始化</p>
 <p>5.设置对象头：将对象的所属类（类的元数据信息）、对象的HashCode和对象的GC信息，锁信息等数据储存在对象的对象头中，这个过程的具体设置方式取决于JVM实现。</p>
 <p>6.执行init初始化，指上面的2和3：显示初始化 / 代码块中初始化 和 构造器中初始化</p>
-<h3 id="对象的内存布局"><a href="#对象的内存布局" class="headerlink" title="对象的内存布局"></a>对象的内存布局</h3><p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521154239.png" alt=""></p>
+<h3 id="对象的内存布局"><a href="#对象的内存布局" class="headerlink" title="对象的内存布局"></a>对象的内存布局</h3><p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521154239.png"></p>
 <p>例子：</p>
-<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E5%9B%BE%E7%A4%BA%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80.jpg" alt=""></p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E5%9B%BE%E7%A4%BA%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80.jpg"></p>
 <h3 id="对象的定位"><a href="#对象的定位" class="headerlink" title="对象的定位"></a>对象的定位</h3><p>主要有两种定位方式：</p>
 <ol>
 <li>句柄访问</li>
 </ol>
-<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E6%96%B9%E5%BC%8F1%EF%BC%9A%E5%8F%A5%E6%9F%84%E8%AE%BF%E9%97%AE.jpg" alt=""></p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E6%96%B9%E5%BC%8F1%EF%BC%9A%E5%8F%A5%E6%9F%84%E8%AE%BF%E9%97%AE.jpg"></p>
 <ol start="2">
 <li>直接指针（Hotspot默认）</li>
 </ol>
-<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E6%96%B9%E5%BC%8F2%EF%BC%9A%E4%BD%BF%E7%94%A8%E7%9B%B4%E6%8E%A5%E6%8C%87%E9%92%88%E8%AE%BF%E9%97%AE.jpg" alt=""></p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC10%E7%AB%A0_%E6%96%B9%E5%BC%8F2%EF%BC%9A%E4%BD%BF%E7%94%A8%E7%9B%B4%E6%8E%A5%E6%8C%87%E9%92%88%E8%AE%BF%E9%97%AE.jpg"></p>
 <blockquote>
 <p>优缺点：</p>
 <p>句柄访问优点是在更改对象实例的地址时，栈里的本地变量表不需要做修改；缺点就是得咋堆里再开一块空间放句柄池</p>
@@ -699,7 +711,7 @@
 <li>虚拟机内部的引用（基本数据类型对应的Class对象，常驻异常对象，系统类加载器）</li>
 <li>其他。。。</li>
 </ul>
-<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521215952.png" alt=""></p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521215952.png"></p>
 <p>上面图片第一点：例如分代垃圾回收对新生代回收，那么老年代也可能有对新生代中对象的一个引用，所以也要把老年代中的引用看成GC Roots。</p>
 <h3 id="finalize"><a href="#finalize" class="headerlink" title="finalize"></a>finalize</h3><p>永远不要主动调用finalize方法，应该交给垃圾回收机制调用。</p>
 <p>理由：</p>
@@ -721,7 +733,7 @@
 <li>不可触及的：对象的 finalize 被调用，并且没有复活，那么就会进入不可触及状态。不可触及状态不可能被复活，因为finalize只会被调用一次</li>
 </ol>
 <p>以上只有在对象不可触及时才可以被回收。</p>
-<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521224314.png" alt=""></p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210521224314.png"></p>
 <blockquote>
 <p>查看GCRoots的工具：用jvisualm导出dump，然后用Eclipse MAT打开dump查看</p>
 <p>或者用JProfiler进行GCroots溯源</p>
@@ -836,7 +848,7 @@
 <blockquote>
 <p>关键是能让程序进行安全的GC，我的理解是安全点是让线程停在点上，区域是说可以让线程继续跑，因为没有引用变化。</p>
 </blockquote>
-<h4 id="强软弱虚"><a href="#强软弱虚" class="headerlink" title="强软弱虚"></a>强软弱虚</h4><p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522120445.png" alt=""></p>
+<h4 id="强软弱虚"><a href="#强软弱虚" class="headerlink" title="强软弱虚"></a>强软弱虚</h4><p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522120445.png"></p>
 <ol>
 <li><p>强引用：不回收</p>
 </li>
@@ -862,7 +874,7 @@
 <li>按工作的内存区间。</li>
 </ol>
 <p><strong>性能指标</strong></p>
-<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC17%E7%AB%A0_%E5%90%9E%E5%90%90%E9%87%8F%E4%B8%8E%E6%9A%82%E5%81%9C%E6%97%B6%E9%97%B4.jpg" alt=""></p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC17%E7%AB%A0_%E5%90%9E%E5%90%90%E9%87%8F%E4%B8%8E%E6%9A%82%E5%81%9C%E6%97%B6%E9%97%B4.jpg"></p>
 <p>现在的标准是，保证了停顿时间，去最大程度加大吞吐量。</p>
 <h4 id="几种垃圾回收器"><a href="#几种垃圾回收器" class="headerlink" title="几种垃圾回收器"></a>几种垃圾回收器</h4><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/%E7%AC%AC17%E7%AB%A0_%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E7%BB%84%E5%90%88.jpg" style="zoom:50%;" />
 
@@ -909,7 +921,7 @@
 <li>在G1出现之前应用广泛</li>
 <li>对于老年代的收集，配合使用见上图</li>
 </ul>
-<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522160421.png" alt=""></p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522160421.png"></p>
 <ol>
 <li>初始标记：只是标记和GC Root直接相关联的对象，速度较快，STW时间短</li>
 <li>并发标记：遍历整个对象图和引用链</li>
@@ -949,7 +961,7 @@
 <li><p>并行与并发：可以有多个GC线程同时工作，此时用户线程STW；可以有工作线程和应用程序同时执行。</p>
 </li>
 <li><p>分代收集，同时兼顾年轻代和老年代</p>
-<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522184858.png" alt=""></p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522184858.png"></p>
 </li>
 <li><p>空间整合</p>
 <ul>
@@ -1036,7 +1048,7 @@
 </li>
 <li>标记完进行混合回收，其中的老年代回收会根据回收价值（有一个阈值，垃圾占比，默认65%）去优先队列取小部分老年代region，而不是所有</li>
 </ul>
-<h3 id="GC日志"><a href="#GC日志" class="headerlink" title="GC日志"></a>GC日志</h3><p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522214808.png" alt=""></p>
+<h3 id="GC日志"><a href="#GC日志" class="headerlink" title="GC日志"></a>GC日志</h3><p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210522214808.png"></p>
 <blockquote>
 <p>未来发展：ZGC</p>
 </blockquote>
@@ -1050,7 +1062,7 @@
     
     <li class="post-copyright-link hidden-xs">
       <strong>本文链接：</strong>
-      <a href="https://jinondo.github.io/2021/05/22/JVM-Note/" title="JVM-Notes" target="_blank" rel="external">https://jinondo.github.io/2021/05/22/JVM-Note/</a>
+      <a href="https://jinondo.github.io/2021/05/22/JVM-Note/" title="JVM学习笔记" target="_blank" rel="external">https://jinondo.github.io/2021/05/22/JVM-Note/</a>
     </li>
     
     <li class="post-copyright-license">
@@ -1140,7 +1152,7 @@
             </div>
             <div role="tabpanel" class="tab-pane fade" id="wechatpay">
               <div class="donate-payimg">
-                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+                <img src="/images/donate/wechatpayimg.jpg" alt="扫码支持" title="扫一扫" />
               </div>
               <p class="text-muted mv">扫码打赏，你说多少就多少</p>
               <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>

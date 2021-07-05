@@ -17,19 +17,19 @@
   <meta http-equiv="window-target" content="_top" />
   
   
-  <title>MATLAB基础笔记2 | Hexo</title>
-  <meta name="description" content="MATLAB笔记2：程序结构和方法Structured Programming &amp; Function 程序结构 循环结构实例 12345for i&#x3D;1:10    x&#x3D;linspace(0,10,101);    plot(x,sin(x+i));    print(gcf,&#39;-deps&#39;,strcat(&#39;plot&#39;,num2str(i),&#39;.ps&#39;));end 逻辑运算符  if-els">
+  <title>MATLAB基础笔记2 | Jinondo&#39;s Blog</title>
+  <meta name="description" content="MATLAB笔记2：程序结构和方法Structured Programming &amp; Function 程序结构 循环结构实例 12345for i&#x3D;1:10    x&#x3D;linspace(0,10,101);    plot(x,sin(x+i));    print(gcf,&amp;#x27;-deps&amp;#x27;,strcat(&amp;#x27;plot&amp;#x27;,num2str(i),&amp;#x27">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MATLAB基础笔记2">
 <meta property="og:url" content="https://jinondo.github.io/2020/07/18/MATLAB%E5%9F%BA%E7%A1%80%E7%AC%94%E8%AE%B02/index.html">
 <meta property="og:site_name" content="Jinondo&#39;s Blog">
-<meta property="og:description" content="MATLAB笔记2：程序结构和方法Structured Programming &amp; Function 程序结构 循环结构实例 12345for i&#x3D;1:10    x&#x3D;linspace(0,10,101);    plot(x,sin(x+i));    print(gcf,&#39;-deps&#39;,strcat(&#39;plot&#39;,num2str(i),&#39;.ps&#39;));end 逻辑运算符  if-els">
+<meta property="og:description" content="MATLAB笔记2：程序结构和方法Structured Programming &amp; Function 程序结构 循环结构实例 12345for i&#x3D;1:10    x&#x3D;linspace(0,10,101);    plot(x,sin(x+i));    print(gcf,&amp;#x27;-deps&amp;#x27;,strcat(&amp;#x27;plot&amp;#x27;,num2str(i),&amp;#x27">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://jinondo.github.io/2020/07/18/MATLAB%E5%9F%BA%E7%A1%80%E7%AC%94%E8%AE%B02/matlab7182.png">
 <meta property="og:image" content="https://jinondo.github.io/2020/07/18/MATLAB%E5%9F%BA%E7%A1%80%E7%AC%94%E8%AE%B02/matlab7183.png">
 <meta property="og:image" content="https://jinondo.github.io/2020/07/18/MATLAB%E5%9F%BA%E7%A1%80%E7%AC%94%E8%AE%B02/matlab7184.png">
 <meta property="article:published_time" content="2020-07-18T09:34:55.000Z">
-<meta property="article:modified_time" content="2020-07-18T09:43:35.946Z">
+<meta property="article:modified_time" content="2020-07-18T09:34:55.000Z">
 <meta property="article:author" content="Jinondo">
 <meta property="article:tag" content="MATLAB">
 <meta name="twitter:card" content="summary">
@@ -40,7 +40,7 @@
     <link rel="alternate" href="/atom.xml" title="Jinondo&#39;s Blog" type="application/atom+xml">
   
   
-    <link rel="icon" href="/favicon.png" type="image/x-icon">
+    <link rel="icon" href="/cytlogo.png" type="image/x-icon">
   
   
 <link rel="stylesheet" href="/css/style.css">
@@ -49,7 +49,7 @@
   
   
   
-<meta name="generator" content="Hexo 4.2.1"></head>
+<meta name="generator" content="Hexo 5.4.0"></head>
 
 
 <body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
@@ -100,7 +100,7 @@
       </button>
     </div>
     <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
-      <ul class="nav navbar-nav main-nav ">
+      <ul class="nav navbar-nav main-nav menu-highlight">
         
         
         <li class="menu-item menu-item-home">
@@ -220,6 +220,13 @@
 
     
       
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
 
     
       
@@ -261,10 +268,10 @@
             
             <div class="item-inner">
               <p class="item-category">
-                
+                <a class="category-link" href="/categories/Java/">Java</a>
               </p>
               <p class="item-title">
-                <a href="/2021/05/22/JVM-Note/" class="title">JVM-Notes</a>
+                <a href="/2021/05/22/JVM-Note/" class="title">JVM学习笔记</a>
               </p>
               <p class="item-date">
                 <time datetime="2021-05-22T15:04:00.000Z" itemprop="datePublished">2021-05-22</time>
@@ -368,7 +375,7 @@
         
   <span class="article-tag">
     <i class="icon icon-tags"></i>
-	<a class="article-tag-link" href="/tags/MATLAB/" rel="tag">MATLAB</a>
+	<a class="article-tag-link-link" href="/tags/MATLAB/" rel="tag">MATLAB</a>
   </span>
 
 
@@ -383,19 +390,18 @@
         <h1 id="MATLAB笔记2：程序结构和方法"><a href="#MATLAB笔记2：程序结构和方法" class="headerlink" title="MATLAB笔记2：程序结构和方法"></a>MATLAB笔记2：程序结构和方法</h1><p><strong>Structured Programming &amp; Function</strong></p>
 <h2 id="程序结构"><a href="#程序结构" class="headerlink" title="程序结构"></a>程序结构</h2><ul>
 <li><p>循环结构实例</p>
-<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> <span class="built_in">i</span>=<span class="number">1</span>:<span class="number">10</span></span><br><span class="line">    x=<span class="built_in">linspace</span>(<span class="number">0</span>,<span class="number">10</span>,<span class="number">101</span>);</span><br><span class="line">    <span class="built_in">plot</span>(x,<span class="built_in">sin</span>(x+<span class="built_in">i</span>));</span><br><span class="line">    print(gcf,<span class="string">'-deps'</span>,strcat(<span class="string">'plot'</span>,num2str(<span class="built_in">i</span>),<span class="string">'.ps'</span>));</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure></li>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> <span class="built_in">i</span>=<span class="number">1</span>:<span class="number">10</span></span><br><span class="line">    x=<span class="built_in">linspace</span>(<span class="number">0</span>,<span class="number">10</span>,<span class="number">101</span>);</span><br><span class="line">    <span class="built_in">plot</span>(x,<span class="built_in">sin</span>(x+<span class="built_in">i</span>));</span><br><span class="line">    print(gcf,<span class="string">&#x27;-deps&#x27;</span>,strcat(<span class="string">&#x27;plot&#x27;</span>,num2str(<span class="built_in">i</span>),<span class="string">&#x27;.ps&#x27;</span>));</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure></li>
 <li><p>逻辑运算符<br><img src="matlab7182.png" alt="逻辑运算符"></p>
 </li>
 <li><p>if-else</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">if condition1</span><br><span class="line">    statement1</span><br><span class="line">elseif condition2</span><br><span class="line">    statement2</span><br><span class="line">else</span><br><span class="line">    statement3</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
-<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="built_in">rem</span>(a, <span class="number">2</span>) == <span class="number">0</span></span><br><span class="line">    <span class="built_in">disp</span>(<span class="string">'a is even'</span>)</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">disp</span>(<span class="string">'a is odd'</span>)</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">if condition1</span><br><span class="line">    statement1</span><br><span class="line">elseif condition2</span><br><span class="line">    statement2</span><br><span class="line">else</span><br><span class="line">    statement3</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="built_in">rem</span>(a, <span class="number">2</span>) == <span class="number">0</span></span><br><span class="line">    <span class="built_in">disp</span>(<span class="string">&#x27;a is even&#x27;</span>)</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">disp</span>(<span class="string">&#x27;a is odd&#x27;</span>)</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
 <blockquote>
 <p>rem()函数计算余数</p>
 </blockquote>
 </li>
 <li><p>switch</p>
-<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">switch</span> input_num</span><br><span class="line"><span class="keyword">case</span> <span class="number">-1</span></span><br><span class="line">    <span class="built_in">disp</span>(<span class="string">'negative 1'</span>);</span><br><span class="line"><span class="keyword">case</span> <span class="number">0</span></span><br><span class="line">    <span class="built_in">disp</span>(<span class="string">'zero'</span>);</span><br><span class="line"><span class="keyword">case</span> <span class="number">1</span></span><br><span class="line">    <span class="built_in">disp</span>(<span class="string">'positive 1'</span>);</span><br><span class="line"><span class="keyword">otherwise</span></span><br><span class="line">    <span class="built_in">disp</span>(<span class="string">'other value'</span>);</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
-</li>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">switch</span> input_num</span><br><span class="line"><span class="keyword">case</span> <span class="number">-1</span></span><br><span class="line">    <span class="built_in">disp</span>(<span class="string">&#x27;negative 1&#x27;</span>);</span><br><span class="line"><span class="keyword">case</span> <span class="number">0</span></span><br><span class="line">    <span class="built_in">disp</span>(<span class="string">&#x27;zero&#x27;</span>);</span><br><span class="line"><span class="keyword">case</span> <span class="number">1</span></span><br><span class="line">    <span class="built_in">disp</span>(<span class="string">&#x27;positive 1&#x27;</span>);</span><br><span class="line"><span class="keyword">otherwise</span></span><br><span class="line">    <span class="built_in">disp</span>(<span class="string">&#x27;other value&#x27;</span>);</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure></li>
 <li><p>while循环</p>
 <figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">n = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">while</span> prod(<span class="number">1</span>:n) &lt; <span class="number">1e100</span></span><br><span class="line">    n = n + <span class="number">1</span>;</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
 <blockquote>
@@ -403,7 +409,7 @@
 </blockquote>
 </li>
 <li><p>for循环</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">for variable&#x3D;start : increment : end</span><br><span class="line">    commands</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">for variable=start : increment : end</span><br><span class="line">    commands</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
 <figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> n=<span class="number">1</span>:<span class="number">10</span></span><br><span class="line">    a(n)=<span class="number">2</span>^n;</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"><span class="built_in">disp</span>(a)</span><br></pre></td></tr></table></figure></li>
 <li><p>关于预分配内存加快程序速度<br><img src="matlab7183.png" alt="关于预定义数据加快程序速度"></p>
 <blockquote>
@@ -414,12 +420,11 @@
 </blockquote>
 </li>
 <li><p>break</p>
-<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">x = <span class="number">2</span>; k = <span class="number">0</span>; error = <span class="built_in">inf</span>;</span><br><span class="line">error_threshold = <span class="number">1e-32</span>;</span><br><span class="line"><span class="keyword">while</span> error &gt; error_threshold</span><br><span class="line">    <span class="keyword">if</span> k &gt; <span class="number">100</span></span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    x = x - <span class="built_in">sin</span>(x)/<span class="built_in">cos</span>(x);</span><br><span class="line">    error = <span class="built_in">abs</span>(x - <span class="built_in">pi</span>);</span><br><span class="line">    k = k + <span class="number">1</span>;</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
-</li>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">x = <span class="number">2</span>; k = <span class="number">0</span>; error = <span class="built_in">inf</span>;</span><br><span class="line">error_threshold = <span class="number">1e-32</span>;</span><br><span class="line"><span class="keyword">while</span> error &gt; error_threshold</span><br><span class="line">    <span class="keyword">if</span> k &gt; <span class="number">100</span></span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    x = x - <span class="built_in">sin</span>(x)/<span class="built_in">cos</span>(x);</span><br><span class="line">    error = <span class="built_in">abs</span>(x - <span class="built_in">pi</span>);</span><br><span class="line">    k = k + <span class="number">1</span>;</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure></li>
 </ul>
 <hr>
 <h2 id="Fuction"><a href="#Fuction" class="headerlink" title="Fuction"></a>Fuction</h2><ol>
-<li><figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">y</span> = <span class="title">mean</span><span class="params">(x)</span></span></span><br><span class="line"><span class="comment">% MEAN Average or mean value.</span></span><br><span class="line"><span class="comment">% S = MEAN(X) is the mean value of the elements in X</span></span><br><span class="line"><span class="comment">% if X is a vector. For matrices, S is a row</span></span><br><span class="line"><span class="comment">% vector containing the mean value of each column.</span></span><br><span class="line"><span class="keyword">if</span> nargin==<span class="number">2</span> &amp;&amp; ischar(dim)</span><br><span class="line">flag = dim;</span><br><span class="line"><span class="keyword">elseif</span> nargin &lt; <span class="number">3</span></span><br><span class="line">flag = <span class="string">'default'</span>;</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure></li>
+<li><figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">y</span> = <span class="title">mean</span><span class="params">(x)</span></span></span><br><span class="line"><span class="comment">% MEAN Average or mean value.</span></span><br><span class="line"><span class="comment">% S = MEAN(X) is the mean value of the elements in X</span></span><br><span class="line"><span class="comment">% if X is a vector. For matrices, S is a row</span></span><br><span class="line"><span class="comment">% vector containing the mean value of each column.</span></span><br><span class="line"><span class="keyword">if</span> nargin==<span class="number">2</span> &amp;&amp; ischar(dim)</span><br><span class="line">flag = dim;</span><br><span class="line"><span class="keyword">elseif</span> nargin &lt; <span class="number">3</span></span><br><span class="line">flag = <span class="string">&#x27;default&#x27;</span>;</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure></li>
 <li><figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="params">[x,y]</span> = <span class="title">getxandy</span><span class="params">(a,b)</span></span></span><br><span class="line"><span class="comment">% 获得ab，可以返回两个值</span></span><br><span class="line">x = a+b;</span><br><span class="line">y = a-b;</span><br></pre></td></tr></table></figure>
 结果：<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt; [a,b] = getxandy(<span class="number">2</span>,<span class="number">3</span>)</span><br><span class="line"></span><br><span class="line">a =</span><br><span class="line"></span><br><span class="line">     <span class="number">5</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">b =</span><br><span class="line"></span><br><span class="line">    <span class="number">-1</span></span><br></pre></td></tr></table></figure></li>
 </ol>
@@ -440,7 +445,7 @@
 <ul>
 <li>B站教程链接</li>
 </ul>
-<p><strong>台大郭彦甫matlab教程:</strong>  <a href="https://www.bilibili.com/video/BV1GJ41137UH" target="_blank" rel="noopener">点击链接</a></p>
+<p><strong>台大郭彦甫matlab教程:</strong>  <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1GJ41137UH">点击链接</a></p>
 
       
     </div>
@@ -544,7 +549,7 @@
             </div>
             <div role="tabpanel" class="tab-pane fade" id="wechatpay">
               <div class="donate-payimg">
-                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+                <img src="/images/donate/wechatpayimg.jpg" alt="扫码支持" title="扫一扫" />
               </div>
               <p class="text-muted mv">扫码打赏，你说多少就多少</p>
               <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
