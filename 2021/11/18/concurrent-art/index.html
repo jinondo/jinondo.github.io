@@ -18,12 +18,12 @@
   
   
   <title>Java并发与Java内存模型 | Jinondo&#39;s Blog</title>
-  <meta name="description" content="Java 并发机制的底层实现原理Volatile 的应用 定义：Java变成语言允许线程访问共享变量，为了确保共享变量能被准确和一致地更新，线程应该确保通过排它锁单独获得这个变量。  几个术语：  缓存行（cache line）是CPU缓存中可分配、操作的最小存储单元，就是获取一块内存数据，放入缓存，这块数据成为缓存行。  缓存行填充：当处理器识别到从内存中读取操作数是可缓存的，处理器读取整个高速">
+  <meta name="description" content="ps：本文为《Java并发编程的艺术》部分总结 Java 并发机制的底层实现原理Volatile 的应用 定义：Java变成语言允许线程访问共享变量，为了确保共享变量能被准确和一致地更新，线程应该确保通过排它锁单独获得这个变量。  几个术语：  缓存行（cache line）是CPU缓存中可分配、操作的最小存储单元，就是获取一块内存数据，放入缓存，这块数据成为缓存行。  缓存行填充：当处理器识别到">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java并发与Java内存模型">
 <meta property="og:url" content="https://jinondo.github.io/2021/11/18/concurrent-art/index.html">
 <meta property="og:site_name" content="Jinondo&#39;s Blog">
-<meta property="og:description" content="Java 并发机制的底层实现原理Volatile 的应用 定义：Java变成语言允许线程访问共享变量，为了确保共享变量能被准确和一致地更新，线程应该确保通过排它锁单独获得这个变量。  几个术语：  缓存行（cache line）是CPU缓存中可分配、操作的最小存储单元，就是获取一块内存数据，放入缓存，这块数据成为缓存行。  缓存行填充：当处理器识别到从内存中读取操作数是可缓存的，处理器读取整个高速">
+<meta property="og:description" content="ps：本文为《Java并发编程的艺术》部分总结 Java 并发机制的底层实现原理Volatile 的应用 定义：Java变成语言允许线程访问共享变量，为了确保共享变量能被准确和一致地更新，线程应该确保通过排它锁单独获得这个变量。  几个术语：  缓存行（cache line）是CPU缓存中可分配、操作的最小存储单元，就是获取一块内存数据，放入缓存，这块数据成为缓存行。  缓存行填充：当处理器识别到">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210608001835.png">
 <meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210608090812.png">
@@ -422,7 +422,8 @@
     </div>
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        <h2 id="Java-并发机制的底层实现原理"><a href="#Java-并发机制的底层实现原理" class="headerlink" title="Java 并发机制的底层实现原理"></a>Java 并发机制的底层实现原理</h2><h3 id="Volatile-的应用"><a href="#Volatile-的应用" class="headerlink" title="Volatile 的应用"></a>Volatile 的应用</h3><ul>
+        <p><strong>ps：本文为《Java并发编程的艺术》部分总结</strong></p>
+<h2 id="Java-并发机制的底层实现原理"><a href="#Java-并发机制的底层实现原理" class="headerlink" title="Java 并发机制的底层实现原理"></a>Java 并发机制的底层实现原理</h2><h3 id="Volatile-的应用"><a href="#Volatile-的应用" class="headerlink" title="Volatile 的应用"></a>Volatile 的应用</h3><ul>
 <li>定义：Java变成语言允许线程访问共享变量，为了确保共享变量能被准确和一致地更新，线程应该确保通过排它锁单独获得这个变量。</li>
 </ul>
 <p>几个术语：</p>
@@ -454,7 +455,7 @@
 </blockquote>
 <p><strong>volatile的使用优化</strong></p>
 <p>这里提到一个JDK7并发包里的一个队列集合类 <code>LinkedTransferQueue</code></p>
-<p>它在舒勇volatile变量时，用一种追加字节的方式来优化队列出队和入队的性能。</p>
+<p>它在使用volatile变量时，用一种追加字节的方式来优化队列出队和入队的性能。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** 队列中的头部节点 */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">transient</span> f?inal PaddedAtomicReference&lt;QNode&gt; head;</span><br><span class="line"><span class="comment">/** 队列中的尾部节点 */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">transient</span> f?inal PaddedAtomicReference&lt;QNode&gt; tail;</span><br><span class="line"><span class="keyword">static</span> f?inal <span class="class"><span class="keyword">class</span> <span class="title">PaddedAtomicReference</span> &lt;<span class="title">T</span>&gt; <span class="keyword">extends</span> <span class="title">AtomicReference</span> <span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">    <span class="comment">// 使用很多4个字节的引用追加到64个字节</span></span><br><span class="line">    Object p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, pa, pb, pc, pd, pe;</span><br><span class="line">    PaddedAtomicReference(T r) &#123;</span><br><span class="line">        <span class="keyword">super</span>(r);</span><br><span class="line">    &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AtomicReference</span> &lt;<span class="title">V</span>&gt; <span class="keyword">implements</span> <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> V value;</span><br><span class="line">    <span class="comment">// 省略其他代码</span></span><br><span class="line">｝</span><br></pre></td></tr></table></figure>
 
 <p>原因：</p>
