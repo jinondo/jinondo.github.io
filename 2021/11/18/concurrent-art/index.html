@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Java并发与Java内存模型 | Jinondo&#39;s Blog</title>
+  <meta name="description" content="Java 并发机制的底层实现原理Volatile 的应用 定义：Java变成语言允许线程访问共享变量，为了确保共享变量能被准确和一致地更新，线程应该确保通过排它锁单独获得这个变量。  几个术语：  缓存行（cache line）是CPU缓存中可分配、操作的最小存储单元，就是获取一块内存数据，放入缓存，这块数据成为缓存行。  缓存行填充：当处理器识别到从内存中读取操作数是可缓存的，处理器读取整个高速">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java并发与Java内存模型">
+<meta property="og:url" content="https://jinondo.github.io/2021/11/18/concurrent-art/index.html">
+<meta property="og:site_name" content="Jinondo&#39;s Blog">
+<meta property="og:description" content="Java 并发机制的底层实现原理Volatile 的应用 定义：Java变成语言允许线程访问共享变量，为了确保共享变量能被准确和一致地更新，线程应该确保通过排它锁单独获得这个变量。  几个术语：  缓存行（cache line）是CPU缓存中可分配、操作的最小存储单元，就是获取一块内存数据，放入缓存，这块数据成为缓存行。  缓存行填充：当处理器识别到从内存中读取操作数是可缓存的，处理器读取整个高速">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210608001835.png">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210608090812.png">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210608100745.png">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210608101806.png">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210608111342.png">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210608113506.png">
+<meta property="og:image" content="c:/Users/Jinondo/AppData/Roaming/Typora/typora-user-images/image-20210608125841719.png">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210608132755.png">
+<meta property="og:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210608133029.png">
+<meta property="article:published_time" content="2021-11-18T14:34:00.000Z">
+<meta property="article:modified_time" content="2021-11-18T14:34:00.000Z">
+<meta property="article:author" content="Jinondo">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="并发编程">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210608001835.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://jinondo.github.io/2021/11/18/concurrent-art/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Jinondo&#39;s Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/cytlogo.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/jinondo" target="_blank">
+          <img class="img-circle img-rotate" src="/images/cytAvatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">Jinondo</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Jinondo&#39;s Blog</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shantou, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav menu-highlight">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/jinondo" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="https://www.weibo.com/5727886156" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://www.facebook.com/yt.chen.351/" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+        <li><a href="https://instagram.com" target="_blank" title="Instagram" data-toggle=tooltip data-placement=top><i class="icon icon-instagram"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9D%82%E4%B8%83%E6%9D%82%E5%85%AB/">杂七杂八</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo%E5%8D%9A%E5%AE%A2/" rel="tag">Hexo博客</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MATLAB/" rel="tag">MATLAB</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Springboot/" rel="tag">Springboot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iconfont/" rel="tag">iconfont</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%AE%97%E6%B3%95/" rel="tag">算法</a><span class="tag-list-count">13</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Hexo%E5%8D%9A%E5%AE%A2/" style="font-size: 13.25px;">Hexo博客</a> <a href="/tags/Java/" style="font-size: 13.5px;">Java</a> <a href="/tags/MATLAB/" style="font-size: 13.75px;">MATLAB</a> <a href="/tags/Springboot/" style="font-size: 13px;">Springboot</a> <a href="/tags/iconfont/" style="font-size: 13px;">iconfont</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" style="font-size: 13px;">并发编程</a> <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 14px;">算法</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Archive</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/03/">March 2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a><span class="archive-list-count">9</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Java/">Java</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/11/18/concurrent-art/" class="title">Java并发与Java内存模型</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-11-18T14:34:00.000Z" itemprop="datePublished">2021-11-18</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Java/">Java</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/07/06/%E9%AB%98%E6%A0%A1%E5%81%A5%E5%BA%B7%E4%B8%8A%E6%8A%A5%E7%B3%BB%E7%BB%9F%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1%E9%87%8D%E7%82%B9/" class="title">高校健康上报系统后端设计重点</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-06T07:08:21.000Z" itemprop="datePublished">2021-07-06</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%9D%82%E4%B8%83%E6%9D%82%E5%85%AB/">杂七杂八</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/07/05/iconfont%E4%BD%BF%E7%94%A8/" class="title">iconfont使用</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-05T15:00:58.000Z" itemprop="datePublished">2021-07-05</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Java/">Java</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/05/22/JVM-Note/" class="title">JVM学习笔记</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-05-22T15:04:00.000Z" itemprop="datePublished">2021-05-22</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2021/03/03/%E5%93%88%E5%B8%8C%E8%A1%A8%E4%B8%8E%E5%AD%97%E7%AC%A6%E4%B8%B2/" class="title">哈希表与字符串</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-03-03T11:52:15.000Z" itemprop="datePublished">2021-03-03</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<aside class="sidebar sidebar-toc collapse" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">Catalogue</h3>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Java-%E5%B9%B6%E5%8F%91%E6%9C%BA%E5%88%B6%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86"><span class="toc-number">1.</span> <span class="toc-text">Java 并发机制的底层实现原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Volatile-%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">1.1.</span> <span class="toc-text">Volatile 的应用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#synchronized"><span class="toc-number">1.2.</span> <span class="toc-text">synchronized</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%94%81%E5%8D%87%E7%BA%A7"><span class="toc-number">1.2.1.</span> <span class="toc-text">锁升级</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%81%8F%E5%90%91%E9%94%81"><span class="toc-number">1.2.1.1.</span> <span class="toc-text">偏向锁</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81"><span class="toc-number">1.2.1.2.</span> <span class="toc-text">轻量级锁</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86"><span class="toc-number">1.3.</span> <span class="toc-text">原子操作的实现原理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B"><span class="toc-number">2.</span> <span class="toc-text">Java内存模型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%9F%BA%E7%A1%80"><span class="toc-number">2.1.</span> <span class="toc-text">Java内存模型基础</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%87%8D%E6%8E%92%E5%BA%8F"><span class="toc-number">2.1.1.</span> <span class="toc-text">重排序</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#happens-before%E7%AE%80%E4%BB%8B"><span class="toc-number">2.1.2.</span> <span class="toc-text">happens-before简介</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%87%8D%E6%8E%92%E5%BA%8F-1"><span class="toc-number">2.2.</span> <span class="toc-text">重排序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A1%BA%E5%BA%8F%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-number">2.3.</span> <span class="toc-text">顺序一致性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#volatile%E7%9A%84%E5%86%85%E5%AD%98%E8%AF%AD%E4%B9%89%EF%BC%9A"><span class="toc-number">2.4.</span> <span class="toc-text">volatile的内存语义：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#volatile%E5%86%99-%E8%AF%BB%E7%9A%84%E5%86%85%E5%AD%98%E8%AF%AD%E4%B9%89"><span class="toc-number">2.4.1.</span> <span class="toc-text">volatile写-读的内存语义</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#volatile%E5%86%85%E5%AD%98%E8%AF%AD%E4%B9%89%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-number">2.4.2.</span> <span class="toc-text">volatile内存语义的实现</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%94%81%E7%9A%84%E5%86%85%E5%AD%98%E8%AF%AD%E4%B9%89"><span class="toc-number">2.5.</span> <span class="toc-text">锁的内存语义</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%94%81%E7%9A%84%E5%86%85%E5%AD%98%E8%AF%AD%E4%B9%89%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-number">2.5.1.</span> <span class="toc-text">锁的内存语义的实现</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#concurrent-%E5%8C%85%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-number">2.5.2.</span> <span class="toc-text">concurrent 包的实现</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#final%E5%9F%9F%E7%9A%84%E5%86%85%E5%AD%98%E8%AF%AD%E4%B9%89"><span class="toc-number">2.6.</span> <span class="toc-text">final域的内存语义</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#final%E5%9F%9F%E5%9C%A8%E5%A4%84%E7%90%86%E5%99%A8%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-number">2.6.1.</span> <span class="toc-text">final域在处理器中的实现</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#happens-before"><span class="toc-number">2.7.</span> <span class="toc-text">happens-before</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#happens-before%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="toc-number">2.7.1.</span> <span class="toc-text">happens-before的定义</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#happens-before%E8%A7%84%E5%88%99"><span class="toc-number">2.7.2.</span> <span class="toc-text">happens-before规则</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8C%E9%87%8D%E6%A3%80%E6%9F%A5%E9%94%81%E5%AE%9A%E4%B8%8E%E5%BB%B6%E8%BF%9F%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">2.8.</span> <span class="toc-text">双重检查锁定与延迟初始化</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8Evolatile%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">2.8.1.</span> <span class="toc-text">基于volatile的解决方案</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E%E7%B1%BB%E5%88%9D%E5%A7%8B%E5%8C%96%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">2.8.2.</span> <span class="toc-text">基于类初始化的解决方案</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%BB%BC%E8%BF%B0"><span class="toc-number">2.9.</span> <span class="toc-text">Java内存模型综述</span></a></li></ol></li></ol>
+    </nav>
+  </div>
+</aside>
+
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-concurrent-art" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Java并发与Java内存模型
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2021/11/18/concurrent-art/" class="article-date">
+	  <time datetime="2021-11-18T14:34:00.000Z" itemprop="datePublished">2021-11-18</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Java/" rel="tag">Java</a>, <a class="article-tag-link-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a>
+  </span>
+
+
+        
+
+	<span class="article-read hidden-xs">
+    	<i class="icon icon-eye-fill" aria-hidden="true"></i>
+    	<span id="/2021/11/18/concurrent-art/" class="leancloud_visitors"  data-flag-title="Java并发与Java内存模型">0</span>
+    </span>
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2021/11/18/concurrent-art/#comments" class="article-comment-link">Comments</a></span>
+        
+	
+		<span class="post-wordcount hidden-xs" itemprop="wordCount">Word Count: 8.1k(words)</span>
+	
+	
+		<span class="post-readcount hidden-xs" itemprop="timeRequired">Read Count: 28(minutes)</span>
+	
+
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="Java-并发机制的底层实现原理"><a href="#Java-并发机制的底层实现原理" class="headerlink" title="Java 并发机制的底层实现原理"></a>Java 并发机制的底层实现原理</h2><h3 id="Volatile-的应用"><a href="#Volatile-的应用" class="headerlink" title="Volatile 的应用"></a>Volatile 的应用</h3><ul>
+<li>定义：Java变成语言允许线程访问共享变量，为了确保共享变量能被准确和一致地更新，线程应该确保通过排它锁单独获得这个变量。</li>
+</ul>
+<p>几个术语：</p>
+<ul>
+<li><p>缓存行（cache line）是CPU缓存中可分配、操作的最小存储单元，就是获取一块内存数据，放入缓存，这块数据成为缓存行。</p>
+</li>
+<li><p>缓存行填充：当处理器识别到从内存中读取操作数是可缓存的，处理器读取整个高速缓存行到适当的缓存（L1,L2,L3的或所有）</p>
+</li>
+<li><p>缓存命中“如果进行高速缓存行填充操作的内存位置仍然是下次处理器访问的地址时，处理器从缓存中读取操作数，而不是从内存读取。</p>
+</li>
+<li><p>写命中：当处理器将操作数写回到一个内存缓存的区域时，它首先会检查这个缓存的内存地址是否在缓存行中，如果存在一个有效的缓存行，则处理器将这个操作数写回到魂村，而不是写回到内存。</p>
+</li>
+<li><p>写缺失：一个有效的缓存行被写入到不存在的内存区域。</p>
+</li>
+</ul>
+<p>volatile如何保证可见性：</p>
+<p>在X86处理器下通过工具获取JIT编译器生成的汇编指令来查看对volatile进行写操作时 ，有volatile修饰的变量进行写操作会多出后面一行</p>
+<p><code>0x01a3de1d: movb $0×0,0×1104800(%esi);0x01a3de24: lock addl $0×0,(%esp);  </code></p>
+<p>关键就在于这个Lock前缀的指令。</p>
+<p>Lock前缀的指令在多核处理器下会引发两件事情</p>
+<p>1）将当前处理器缓存行的数据写回到系统内存。</p>
+<blockquote>
+<p>Lock前缀指令导致在执行指令期间，声言处理器的LOCK#信号。在多处理器环境中，LOCK#信号确保在声言该信号期间，处理器可以独占任何共享内存。但是，在最近的处理器里，LOCK＃信号一般不锁总线，而是锁缓存，毕竟锁总线开销的比较大。  </p>
+</blockquote>
+<p>2）这个写回内存的操作会使在其他CPU里缓存了该内存地址的数据无效。  </p>
+<blockquote>
+<p>处理器如何知道自己缓存值是不是过期了？</p>
+<p>每个处理器通过嗅探在总线上传播的数据来检查自己缓存值是否过期，当处理器发现自己缓存行对应的内存地址被修改，就会将当前处理器的缓存行设置成无效状态，当处理器对这个数据进行修改操作的时候，会重新从系统内存中把数据读到处理器缓存里。</p>
+</blockquote>
+<p><strong>volatile的使用优化</strong></p>
+<p>这里提到一个JDK7并发包里的一个队列集合类 <code>LinkedTransferQueue</code></p>
+<p>它在舒勇volatile变量时，用一种追加字节的方式来优化队列出队和入队的性能。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** 队列中的头部节点 */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">transient</span> f?inal PaddedAtomicReference&lt;QNode&gt; head;</span><br><span class="line"><span class="comment">/** 队列中的尾部节点 */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">transient</span> f?inal PaddedAtomicReference&lt;QNode&gt; tail;</span><br><span class="line"><span class="keyword">static</span> f?inal <span class="class"><span class="keyword">class</span> <span class="title">PaddedAtomicReference</span> &lt;<span class="title">T</span>&gt; <span class="keyword">extends</span> <span class="title">AtomicReference</span> <span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">    <span class="comment">// 使用很多4个字节的引用追加到64个字节</span></span><br><span class="line">    Object p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, pa, pb, pc, pd, pe;</span><br><span class="line">    PaddedAtomicReference(T r) &#123;</span><br><span class="line">        <span class="keyword">super</span>(r);</span><br><span class="line">    &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AtomicReference</span> &lt;<span class="title">V</span>&gt; <span class="keyword">implements</span> <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> V value;</span><br><span class="line">    <span class="comment">// 省略其他代码</span></span><br><span class="line">｝</span><br></pre></td></tr></table></figure>
+
+<p>原因：</p>
+<p>因为有些处理器的L1、L2或L3缓存的高速缓存行是64个字节宽，不支持部分填充缓存行，这意味着，如果队列的头节点和尾节点都不足64字节的话，处理器会将它们都读到同一个高速缓存行中，在多处理器下每个处理器都会缓存同样的头、尾节点，当一个处理器试图修改头节点时，会将整个缓存行锁定，那么在缓存一致性机制的作用下，会导致其他处理器不能访问自己高速缓存中的尾节点，而队列的入队和出队操作则需要不停修改头节点和尾节点，所以在多处理器的情况下将会严重影响到队列的入队和出队效率。Doug lea使用追加到64字节的方式来填满高速缓冲区的缓存行，避免头节点和尾节点加载到同一个缓存行，使头、尾节点在修改时不会互相锁定。  </p>
+<blockquote>
+<ul>
+<li>第一，当然不是在所有情况下volatile变量都要追加到64字节：缓存行非64字节宽的处理器；共享变量不会被频繁写</li>
+<li>第二，在JDK8里面已经改了。</li>
+<li>第三，这种追加字节的方式在Java7下可能不生效，会淘汰或重新排列无用字段。</li>
+</ul>
+</blockquote>
+<h3 id="synchronized"><a href="#synchronized" class="headerlink" title="synchronized"></a>synchronized</h3><p>:chart_with_upwards_trend:  JDK1,6后优化，增加了偏向锁和轻量级锁。</p>
+<p>synchronized在JVM的实现原理：</p>
+<p>JVM基于进入和退出Monitor对象来实现方法同步和代码块同步，但两者的实现细节不一样。代码块同步是使用<code>monitorenter</code><br>和<code>monitorexit</code>指令实现的，而方法同步是使用另外一种方式实现的，细节在JVM规范里并没有详细说明。但是，方法的同步同样可以使用这两个指令来实现。</p>
+<p>monitorenter指令是在编译后插入到同步代码块的开始位置，而monitorexit是插入到方法结束处和异常处，JVM要保证每个monitorenter必须有对应的monitorexit与之配对。任何对象都有一个monitor与之关联，当且一个monitor被持有后，它将处于锁定状态。线程执行到monitorenter指令时，将会尝试获取对象所对应的monitor的所有权，即尝试获得对象的锁。  </p>
+<p><strong>Java对象头</strong></p>
+<p>synchronized用的锁是存在Java对象头里的，普通对象头是2个字宽，是数组则是3个字宽，其中的一个字宽的内容被称为<code>mark word</code></p>
+<p>其中存储了对象的hashcode，分代年龄和锁信息，重点提及这个锁信息数据。</p>
+<p>32位虚拟机和64位虚拟机mark word的储存结构不一样，这里不过多赘述，见原书。</p>
+<h4 id="锁升级"><a href="#锁升级" class="headerlink" title="锁升级"></a>锁升级</h4><ul>
+<li><p>Java SE 1.6 为了减少获得锁和释放锁带来的性能消耗，引入了“偏向锁”和“轻量级锁”。</p>
+</li>
+<li><p>一共四种状态：无锁状态，偏向锁状态，轻量级锁状态和重量级锁状态。</p>
+</li>
+<li><p>锁可以升级但不能降级，目的是为了提高获得锁和释放锁的效率。</p>
+</li>
+</ul>
+<h5 id="偏向锁"><a href="#偏向锁" class="headerlink" title="偏向锁"></a>偏向锁</h5><p>HotSpot的作者经过研究发现，大多数情况下，锁不仅不存在多线程竞争，而且总是由同一线程多次获得，为了让线程获得锁的代价更低而引入了偏向锁。  当一个线程访问同步块并获取锁时，会在对象头和栈帧中的锁记录里存储锁偏向的线程ID，以后该线程在进入和退出同步块时不需要进行CAS操作来加锁和解锁，只需简单地测试一下对象头的Mark Word里是否存储着指向当前线程的偏向锁。如果测试成功，表示线程已经获得了锁。如果测试失败，则需要再测试一下Mark Word中偏向锁的标识是否设置成1（表示当前是偏向锁）：如果没有设置，则使用CAS竞争锁；如果设置了，则尝试使用CAS将对象头的偏向锁指向当前线程。  </p>
+<p>偏向锁的撤销：</p>
+<p>偏向锁使用了一种等到竞争出现才释放锁的机制，所以当其他线程尝试竞争偏向锁时，持有偏向锁的线程才会释放锁。偏向锁的撤销，需要等待全局安全点（在这个时间点上没有正在执行的字节码）。它会首先暂停拥有偏向锁的线程，然后检查持有偏向锁的线程是否活着，如果线程不处于活动状态，则将对象头设置成无锁状态；如果线程仍然活着，拥有偏向锁的栈会被执行，遍历偏向对象的锁记录，栈中的锁记录和对象头的Mark Word要么重新偏向于其他线程，要么恢复到无锁或者标记对象不适合作为偏向锁，最后唤醒暂停的线程。  </p>
+<p>过程：</p>
+<img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210608001835.png" style="zoom:80%;" />
+
+
+
+<p>  关闭偏向锁</p>
+<p>偏向锁 1.6和1.7默认启用，可以通过命令关闭偏向锁，如果锁经常处于竞争状态的话。</p>
+<h5 id="轻量级锁"><a href="#轻量级锁" class="headerlink" title="轻量级锁"></a>轻量级锁</h5><ul>
+<li><p>加锁：</p>
+<p>线程在执行同步块之前，JVM会先在当前线程的栈桢中创建用于存储锁记录的空间，并将对象头中的Mark Word复制到锁记录中，官方称为Displaced Mark Word。然后线程尝试使用CAS将对象头中的Mark Word替换为指向锁记录的指针。如果成功，当前线程获得锁，如果失败，表示其他线程竞争锁，当前线程便尝试使用自旋来获取锁。  </p>
+</li>
+<li><p>解锁：</p>
+<p>轻量级解锁时，会使用原子的CAS操作将Displaced Mark Word替换回到对象头，如果成功，则表示没有竞争发生。如果失败，表示当前锁存在竞争，锁就会膨胀成重量级锁。  </p>
+</li>
+</ul>
+<img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210608090812.png" style="zoom:80%;" />
+
+
+
+<blockquote>
+<p>优缺点：</p>
+<ol>
+<li>偏向锁解锁解锁不需要额外消耗，如果有竞争则锁撤销有消耗，适用于单线程场景</li>
+<li>轻量级锁竞争线程不会阻塞，使用自旋，如果市始终得不到锁，则自旋消耗CPU，适用于追求响应时间。</li>
+<li>重量级锁不自旋不消耗CPU，直接阻塞，相应时间慢，适用于追求吞吐量场景。</li>
+</ol>
+</blockquote>
+<h3 id="原子操作的实现原理"><a href="#原子操作的实现原理" class="headerlink" title="原子操作的实现原理"></a>原子操作的实现原理</h3><p>术语</p>
+<p>内存顺序冲突：一般是由假共享引起的，假共享是指多个CPU同时修改同一个缓存行的不同部分而引起其中一个CPU的操作无效（缓存一致性协议针对的是最小存取单元：缓存行），当出现这个内存顺序冲突时，CPU必须清空流水线。</p>
+<blockquote>
+<p>总结来说，就是多核多线程并发场景下，多核要操作的不同变量处于同一缓存行，某cpu更新缓存行中数据，并将其写回缓存，同时其他处理器会使该缓存行失效，如需使用，还需从内存中重新加载。这对效率产生了较大的影响。</p>
+</blockquote>
+<p>处理器实现原子操作：</p>
+<p>处理器保证从系统内存中读取或写入一个字节是原子的，意思是当一个处理器读取一个字节时，其他的处理器不能访问这个字节的内存地址。如果是复杂内存操作的原子性，处理器提供总线锁定和缓存锁定两个机制来保证复杂内存操作的原子性。</p>
+<ol>
+<li>总线锁定：所谓总线锁就是使用处理器提供的一个LOCK＃信号，当一个处理器在总线上输出此信号时，其他处理器的请求将被阻塞住，那么该处理器可以独占共享内存。  </li>
+<li>缓存锁定：所谓“缓存锁定”是指内存区域如果被缓存在处理器的缓存行中，并且在Lock操作期间被锁定，那么当它执行锁操作回写到内存时，处理器不在总线上声言LOCK＃信号，而是修改内部的内存地址，并允许它的缓存一致性机制（对象就是缓存行）来保证操作的原子性，因为缓存一致性机制会阻止同时修改由两个以上处理器缓存的内存区域数据，当其他处理器回写已被锁定的缓存行的数据时，会使缓存行无效 。</li>
+</ol>
+<blockquote>
+<p>不适用缓存行的情况：</p>
+<ol>
+<li>操作数据不能缓存在处理器内部，或操作数据跨多个缓存行，这种情况会锁总线。</li>
+<li>处理器不支持缓存锁定</li>
+</ol>
+</blockquote>
+<p><strong>Java如何实现原子操作</strong></p>
+<ol>
+<li><p>使用循环CAS实现原子操作</p>
+<p>从Java 1.5开始，JDK的并发包里提供了一些类来支持原子操作，如<code>AtomicBoolean</code>（用原子方式更新的boolean值）、<code>AtomicInteger</code>（用原子方式更新的int值）和<code>AtomicLong</code>（用原子方式更新的long值）。这些原子包装类还提供了有用的工具方法，比如以原子的方式将当前值自增1和自减1。  </p>
+</li>
+<li><p>CAS的三大问题：</p>
+<ul>
+<li>ABA问题，JDK里可以通过<code>AtomicStampedReference  </code>解决，不仅比较预期和更新后的Reference，还比较预期和更新后的Stamp（标志）。</li>
+<li>循环时间开销大，这里提处理器的pause指令能提升效率，1是延迟流水线执行命令，2是解决内存顺序冲突。</li>
+<li>只能保证一个共享变量的原子操作，JDK中可以通过<code>AtomicReference  </code>，把多个变量放在一个对<br>象里来进行CAS操作。  </li>
+</ul>
+</li>
+<li><p>使用锁机制实现原子操作。（这里提到除了偏向锁，JVM实现锁都使用到循环CAS）</p>
+</li>
+</ol>
+<h2 id="Java内存模型"><a href="#Java内存模型" class="headerlink" title="Java内存模型"></a>Java内存模型</h2><h3 id="Java内存模型基础"><a href="#Java内存模型基础" class="headerlink" title="Java内存模型基础"></a>Java内存模型基础</h3><blockquote>
+<p>在命令式编程中，线程之间的通信机制有两种：共享内存 和 消息传递。</p>
+<p>Java的并发采用的是共享内存模型，Java线程之间的通信总是隐式进行，整个通信过程对程序员完全透明。  </p>
+</blockquote>
+<p>从抽象的角度来看，JMM定义了线程和主内存之间的抽象关系：线程之间的共享变量存储在主内存（Main Memory）中，每个线程都有一个私有的本地内存（Local Memory），本地内存中存储了该线程以读/写共享变量的副本。本地内存是JMM的一个抽象概念，并不真实存在。它涵盖了缓存、写缓冲区、寄存器以及其他的硬件和编译器优化。  </p>
+<img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210608100745.png" style="zoom:67%;" />
+
+<p>线程中的通信可以看成：</p>
+<p>1）线程A把本地内存A中更新过的共享变量刷新到主内存中去。<br>2）线程B到主内存中去读取线程A之前已更新过的共享变量。  </p>
+<p>表面上是线程之间发送该消息，实际通过了主内存这个中间人。</p>
+<h4 id="重排序"><a href="#重排序" class="headerlink" title="重排序"></a>重排序</h4><p>重排序分三种（从Java源码到执行的指令序列也经过这三种    ）：</p>
+<ol>
+<li>编译器优化的重排序。</li>
+<li>指令级并行的重排序</li>
+<li>内存系统的重排序</li>
+</ol>
+<p>2和3属于处理器重排序：Java的处理器重排序规则会要求编译器在生成指令序列时插入内存屏障</p>
+<blockquote>
+<ul>
+<li>现代的处理器使用写缓冲区临时保存向内存写入的数据。  </li>
+<li>但每个处理器上的写缓冲区，仅仅对它所在的处理器可见。这个特性会对内存操作的执行顺序产生重要的影响：处理器对内存的读/写操作的执行顺序，不一定与内存实际发生的读/写操作顺序一致！  </li>
+<li>常见的处理器不允许对存在 <code> 数据依赖</code> 的操作做重排序。</li>
+</ul>
+</blockquote>
+<p>**为了保证内存可见性，Java编译器在生成指令序列的适当位置会插入内存屏障指令来禁止特定类型的处理器重排序。  **</p>
+<p><img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210608101806.png"></p>
+<blockquote>
+<p> StoreLoad Barriers是一个“全能型”的屏障，它同时具有其他3个屏障的效果。  </p>
+</blockquote>
+<h4 id="happens-before简介"><a href="#happens-before简介" class="headerlink" title="happens-before简介"></a>happens-before简介</h4><p>从JDK 5开始，Java使用新的JSR-133内存模型（除非特别说明，本文针对的都是JSR-133内存模型）。JSR-133使用happens-before的概念来阐述操作之间的内存可见性。在JMM中，如果一个操作执行的结果需要对另一个操作可见，那么这两个操作之间必须要存在happens-before关系。这里提到的两个操作既可以是在一个线程之内，也可以是在不同线程之间。</p>
+<blockquote>
+<p>两个操作之间具有happens-before关系，并不意味着前一个操作必须要在后一个<br>操作之前执行！ happens-before仅仅要求前一个操作（执行的结果）对后一个操作可见，且前一<br>个操作按顺序排在第二个操作之前（the first is visible to and ordered before the second）。   </p>
+</blockquote>
+<h3 id="重排序-1"><a href="#重排序-1" class="headerlink" title="重排序"></a>重排序</h3><blockquote>
+<ul>
+<li>如果两个操作访问同一个变量，且这两个操作中有一个为写操作，此时这两个操作之间就存在数据依赖性。  </li>
+<li><strong>这里所说的数据依赖性仅针对单个处理器中执行的指令序列和单个线程中执行的操作</strong>，不同处理器之间和不同线程之间的数据依赖性不被编译器和处理器考虑，我们所说的如果操作没有数据依赖性，编译器和处理器可以进行重排序，是从单线程角度看；从多线程是从整体角度来看了，是另一回事。  </li>
+</ul>
+</blockquote>
+<p><strong>as-if-serial</strong></p>
+<p>as-if-serial语义的意思是：不管怎么重排序（编译器和处理器为了提高并行度），（单线程）程序的执行结果不能被改变。编译器、runtime和处理器都必须遵守as-if-serial语义。</p>
+<p>重排序对多线程影响，除了上面所说的数据依赖性以外，还有一个控制依赖性（也是相对于单线程来说的），例如if语句和if下面的语句，在单线程程序中，对存在控制依赖的操作重排序，不会改变执行结果（这也是as-if-serial语义允许对存在控制依赖的操作做重排序的原因）；但在多线程程序中，对存在控制依赖的操作重排序，可能会改变程序的执行结果。  </p>
+<h3 id="顺序一致性"><a href="#顺序一致性" class="headerlink" title="顺序一致性"></a>顺序一致性</h3><p>顺序一致性模型特点：</p>
+<p>1）一个线程中的所有操作必须按照程序的顺序来执行。<br>2）（不管程序是否同步）所有线程都只能看到一个单一的操作执行顺序。在顺序一致性内存模型中，每个操作都必须原子执行且立刻对所有线程可见。  </p>
+<p>顺序一致性内存模型是一个理论参考模型，在设计的时候，处理器的内存模型和编程语言的内存模型都会以顺序一致性内存模型作为参照。  当然我认为只是参照而已，JVM没有上面两个特点的保证，这里不展开。</p>
+<blockquote>
+<p>这里提到一点：</p>
+<p>JMM不保证对64位的long型和double型变量的写操作具有原子性，而顺序一致性模型保证对所有的内存读/写操作都具有原子性。 </p>
+<p>原因：</p>
+<p>总线的工作机制（提到总线仲裁）可以把所有处理器对内存的访问以串行化的方式来执行。在任意时间点，最多只能有一个处理器可以访问内存。这个特性确保了单个总线事务之中的内存读/写操作具有原子性。  但有一些32位处理器，对64位数据的写操作会拆分成两个32位写操作执行，分配到不同的总线事务中执行，所以没有原子性保证。（也就是可能处理器A写一半，B就看到了写了一半）</p>
+<p>注意：在JSR-133之前的旧内存模型中，一个64位long/double型变量的读/写操作可以被拆分为两个32位的读/写操作来执行。从JSR-133内存模型开始（即从JDK5开始），仅仅只允许把一个64位long/double型变量的写操作拆分为两个32位的写操作来执行，任意的读操作在JSR-133中都必须具有原子性（即任意读操作必须要在单个读事务中执行）  </p>
+</blockquote>
+<h3 id="volatile的内存语义："><a href="#volatile的内存语义：" class="headerlink" title="volatile的内存语义："></a>volatile的内存语义：</h3><p>**理解volatile特性的一个好方法是把对volatile变量的单个读/写，看成是使用同一个锁对这些单个读/写操作做了同步。  **</p>
+<blockquote>
+<ul>
+<li>锁的happens-before规则保证释放锁和获取锁的两个线程之间的内存可见性，这意味着对一个volatile变量的读，总是能看到（任意线程）对这个volatile变量最后的写入。  </li>
+<li>锁的语义决定了临界区代码的执行具有原子性。这意味着，即使是64位的long型和double型变量，只要它是volatile变量，对该变量的读/写就具有原子性。如果是多个volatile操作或类似于volatile++这种复合操作，这些操作整体上不具有原子性。  </li>
+</ul>
+</blockquote>
+<p>特性如下：</p>
+<ul>
+<li>可见性。对一个volatile变量的读，总是能看到（任意线程）对这个volatile变量最后的写入。</li>
+<li>原子性：对任意单个volatile变量的读/写具有原子性，但类似于volatile++这种复合操作不具有原子性。  （这个原子性是因为有锁的语义）</li>
+</ul>
+<h4 id="volatile写-读的内存语义"><a href="#volatile写-读的内存语义" class="headerlink" title="volatile写-读的内存语义"></a>volatile写-读的内存语义</h4><p>写的内存语义：当写一个volatile变量时，JMM会把该线程对应的本地内存中的共享变量值刷新到主内存。  </p>
+<p>读的内存语义：当读一个volatile变量时，JMM会把该线程对应的本地内存置为无效。线程接下来将从主内存中读取共享变量。  </p>
+<blockquote>
+<p>总结就是线程间发送消息。</p>
+</blockquote>
+<h4 id="volatile内存语义的实现"><a href="#volatile内存语义的实现" class="headerlink" title="volatile内存语义的实现"></a>volatile内存语义的实现</h4><ul>
+<li>为了实现volatile内存语义，JMM会分别限制这两种类型的重排序类型。  </li>
+<li>为了实现volatile的内存语义，编译器在生成字节码时，会在指令序列中插入内存屏障来禁止特定类型的处理器重排序。对于编译器来说，发现一个最优布置来最小化插入屏障的总数几乎不可能。为此，JMM采取保守策略。（首先保证正确性，再去追求效率）</li>
+</ul>
+<p><strong>JSR-133为什么要增强volatile的内存语义</strong></p>
+<p>在JSR-133之前的旧Java内存模型中，虽然不允许volatile变量之间重排序，但旧的Java内存模型允许volatile变量与普通变量重排序。  </p>
+<p>上张图明白，本来是1，2，3,   4，根据volatile规则和程序顺序规则，1的结果对4可见，但：</p>
+<img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210608111342.png" style="zoom:60%;" />
+
+<p>在旧的内存模型中，volatile的写-读没有锁的释放-获所具有的内存语义 ，所以决定增强，严格限制编译器和处理器对volatile变量与普通变量的重排序 。</p>
+<blockquote>
+<p>可以看出volatile就是一种轻量的锁，在功能上，锁比volatile更强大；在可伸缩性和执行性能上，volatile更有优势。  </p>
+</blockquote>
+<h3 id="锁的内存语义"><a href="#锁的内存语义" class="headerlink" title="锁的内存语义"></a>锁的内存语义</h3><ul>
+<li>当线程释放锁时，JMM会把该线程对应的本地内存中的共享变量刷新到主内存中。  </li>
+<li>当线程获取锁时，JMM会把该线程对应的本地内存置为无效。从而使得被监视器保护的临界区代码必须从主内存中读取共享变量。</li>
+</ul>
+<blockquote>
+<p>锁释放与volatile写有相同的内存语义；锁获取与volatile读有相同的内存语义。  </p>
+<p>总结也是线程间的通信。</p>
+</blockquote>
+<h4 id="锁的内存语义的实现"><a href="#锁的内存语义的实现" class="headerlink" title="锁的内存语义的实现"></a>锁的内存语义的实现</h4><p>这里书中用ReentrantLock为例分析，总结为：</p>
+<ul>
+<li><p>公平锁和非公平锁释放时，最后都要写一个volatile变量state。</p>
+</li>
+<li><p>公平锁获取时，首先会去读volatile变量。</p>
+</li>
+<li><p>非公平锁获取时，首先会用CAS更新volatile变量，这个操作同时具有volatile读和volatile<br>写的内存语义。</p>
+</li>
+</ul>
+<p>对ReentrantLock的分析可以看出，锁释放-获取的内存语义的实现至少有下面两种方式。<br>  1）利用volatile变量的写-读所具有的内存语义。<br>  2）利用CAS所附带的volatile读和volatile写的内存语义。  </p>
+<h4 id="concurrent-包的实现"><a href="#concurrent-包的实现" class="headerlink" title="concurrent 包的实现"></a>concurrent 包的实现</h4><blockquote>
+<p>Java的CAS会使用现代处理器上提供的高效机器级别的原子指令，同时，volatile变量的读/写和CAS可以实现线程之间的通信。把这些特性整合在一起，就形成了整个concurrent包得以实现的基石。如果我们仔细分析concurrent包的源代码实现，会发现一个通用化的实现模式 ：</p>
+<p>首先，声明共享变量为volatile。<br>然后，使用CAS的原子条件更新来实现线程之间的同步（指控制操作顺序的机制）。<br>同时，配合以volatile的读/写和CAS所具有的volatile读和写的内存语义来实现线程之间的通信。  </p>
+</blockquote>
+<p>AQS，非阻塞数据结构和原子变量类（java.util.concurrent.atomic包中的类），这些concurrent包中的基础类都是使用这种模式来实现的，而concurrent包中的高层类又是依赖于这些基础类来实现的。从整体来看，concurrent包的实现示意图如所示。</p>
+<img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210608113506.png" style="zoom:80%;" />
+
+  
+
+<h3 id="final域的内存语义"><a href="#final域的内存语义" class="headerlink" title="final域的内存语义"></a>final域的内存语义</h3><p>1）在构造函数内对一个final域的写入，与随后把这个被构造对象的引用赋值给一个引用变量，这两个操作之间不能重排序。写final域的重排序规则禁止把final域的写重排序到构造函数之外。 </p>
+<p>2）初次读一个包含final域的对象的引用，与随后初次读这个final域，这两个操作之间不能重排序</p>
+<p>3）对于引用类型：在构造函数内对一个final引用的对象的<strong>成员域</strong>的写入，与随后在构造函数外把这个被构造对象的引用赋值给一个引用变量，这两个操作之间不能重排序 。</p>
+<blockquote>
+<p>这里提到一个final引用不能从构造函数内”溢出”。</p>
+</blockquote>
+<p>比如构造函数：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">FinalReferenceEscapeExample</span> <span class="params">()</span> </span>&#123;</span><br><span class="line">    i = <span class="number">1</span>; <span class="comment">// 1写final域</span></span><br><span class="line">    obj = <span class="keyword">this</span>; <span class="comment">// 2 this引用在此&quot;逸出&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>要保证在引用变量为任意线程可见之前，该引用变量指向的对象的final域已经在构造函数中被正确初始化过了，2操作是不能出现的。</p>
+<h4 id="final域在处理器中的实现"><a href="#final域在处理器中的实现" class="headerlink" title="final域在处理器中的实现"></a>final域在处理器中的实现</h4><p>简单说就是插入屏障，但也取决于处理器。</p>
+<p>**JSR-133为什么要增强final的语义  **</p>
+<p>在旧的Java内存模型中，一个最严重的缺陷就是线程可能看到final域的值会改变。  </p>
+<p>为了修补这个漏洞，JSR-133专家组增强了final的语义。通过为final域增加写和读重排序规则，可以为Java程序员提供初始化安全保证：只要对象是正确构造的（被构造对象的引用在构造函数中没有“逸出”），那么不需要使用同步（指lock和volatile的使用）就可以保证任意线程都能看到这个final域在构造函数中被初始化之后的值。  </p>
+<h3 id="happens-before"><a href="#happens-before" class="headerlink" title="happens-before"></a>happens-before</h3><p>JMM把happens-before要求禁止的重排序分为下面两类</p>
+<ul>
+<li>会改变程序执行结果的重排序。</li>
+<li>不会改变程序执行结果的重排序。  </li>
+</ul>
+<p>JMM对这两种不同性质的重排序，采取了不同的策略，如下。</p>
+<ul>
+<li>对于会改变程序执行结果的重排序，JMM要求编译器和处理器必须禁止这种重排序。</li>
+<li>对于不会改变程序执行结果的重排序，JMM对编译器和处理器不做要求（JMM允许这种<br>重排序）。  </li>
+</ul>
+<img src="C:\Users\Jinondo\AppData\Roaming\Typora\typora-user-images\image-20210608125841719.png" alt="image-20210608125841719" style="zoom:67%;" />
+
+<blockquote>
+<p>JMM向程序员提供的happens-before规则能够满足程序员的需求。JMM的happens-before规则不但简单易懂，而且也向程序员提供了足够强的内存可见性保证 。</p>
+<p>上面这张图很好地展示了happens-before存在的意义还有和JVM，程序员三者之间的关系关联。:+1:</p>
+</blockquote>
+<h4 id="happens-before的定义"><a href="#happens-before的定义" class="headerlink" title="happens-before的定义"></a>happens-before的定义</h4><p>《JSR-133:Java Memory Model and Thread Specification》对happens-before关系的定义如下  </p>
+<p>1）如果一个操作happens-before另一个操作，那么第一个操作的执行结果将对第二个操作可见，而且第一个操作的执行顺序排在第二个操作之前。<br>2）两个操作之间存在happens-before关系，并不意味着Java平台的具体实现必须要按照happens-before关系指定的顺序来执行。如果重排序之后的执行结果，与按happens-before关系来执行的结果一致，那么这种重排序并不非法（也就是说，JMM允许这种重排序）。  </p>
+<p>上面的1）是JMM对程序员的承诺。  </p>
+<p>上面的2）是JMM对编译器和处理器重排序的约束原则。  </p>
+<blockquote>
+<p>会发现 happens-before关系本质上和as-if-serial语义是一回事。  </p>
+</blockquote>
+<h4 id="happens-before规则"><a href="#happens-before规则" class="headerlink" title="happens-before规则"></a>happens-before规则</h4><p>《JSR-133:Java Memory Model and Thread Specification》定义了如下happens-before规则。</p>
+<ol>
+<li>程序顺序规则：一个线程中的每个操作，happens-before于该线程中的任意后续操作。</li>
+<li>监视器锁规则：对一个锁的解锁，happens-before于随后对这个锁的加锁。</li>
+<li>volatile变量规则：对一个volatile域的写，happens-before于任意后续对这个volatile域的读。</li>
+<li>传递性：如果A happens-before B，且B happens-before C，那么A happens-before C。</li>
+<li>start()规则：如果线程A执行操作ThreadB.start()（启动线程B），那么A线程的ThreadB.start()操作happens-before于线程B中的任意操作。</li>
+<li>join()规则：如果线程A执行操作ThreadB.join()并成功返回，那么线程B中的任意操作happens-before于线程A从ThreadB.join()操作成功返回。  </li>
+</ol>
+<h3 id="双重检查锁定与延迟初始化"><a href="#双重检查锁定与延迟初始化" class="headerlink" title="双重检查锁定与延迟初始化"></a>双重检查锁定与延迟初始化</h3><p>在Java多线程程序中，有时候需要采用延迟初始化来降低初始化类和创建对象的开销。</p>
+<p><strong>双重检查锁定是常见的延迟初始化技术，但它是一个错误的用法。</strong>  </p>
+<p>书中用了单例模式的代码作为例子讲解，这里不展开。</p>
+<h4 id="基于volatile的解决方案"><a href="#基于volatile的解决方案" class="headerlink" title="基于volatile的解决方案"></a>基于volatile的解决方案</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SafeDoubleCheckedLocking</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">static</span> Instance instance;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Instance <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (SafeDoubleCheckedLocking.class) &#123;</span><br><span class="line">                <span class="keyword">if</span> (instance == <span class="keyword">null</span>)</span><br><span class="line">                	instance = <span class="keyword">new</span> Instance(); <span class="comment">// instance为volatile，现在没问题了</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其实就加了个volatile，学过单例的都清楚</p>
+<p>这个方案本质上是通过禁止指令（<code>instance = new Instance()</code>涉及的三个指令）之间的重排序，来保证线程安全的延迟初始化。  </p>
+<blockquote>
+<p>支持需要JDK5以上版本，因为JSR-133后来增强了volatile的语义。</p>
+</blockquote>
+<h4 id="基于类初始化的解决方案"><a href="#基于类初始化的解决方案" class="headerlink" title="基于类初始化的解决方案"></a>基于类初始化的解决方案</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InstanceFactory</span> </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">InstanceHolder</span> </span>&#123;</span><br><span class="line">		<span class="keyword">public</span> <span class="keyword">static</span> Instance instance = <span class="keyword">new</span> Instance();</span><br><span class="line">	&#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Instance <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> InstanceHolder.instance ; <span class="comment">// 这里将导致InstanceHolder类被初始化</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>原因：类的初始化在JVM中会做同步处理</p>
+</blockquote>
+<blockquote>
+<p>通过对比基于volatile的双重检查锁定的方案和基于类初始化的方案，我们会发现基于类初始化的方案的实现代码更简洁。</p>
+<p>但基于volatile的双重检查锁定的方案有一个额外的优势：除了可以对静态字段实现延迟初始化外，还可以对实例字段实现延迟初始化。  </p>
+</blockquote>
+<h3 id="Java内存模型综述"><a href="#Java内存模型综述" class="headerlink" title="Java内存模型综述"></a>Java内存模型综述</h3><p>这里书中介绍了几种处理器的内存模型，如TSO,PSO,PMO。</p>
+<p>而JMM屏蔽了不同处理器内存模型的差异，它在不同的处理器平台之上为Java程序员呈现了一个一致的内存模型。  </p>
+<img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210608132755.png" style="zoom:67%;" />
+
+<p><strong>各种内存模型之间的关系</strong></p>
+<p>JMM是一个语言级的内存模型，处理器内存模型是硬件级的内存模型，顺序一致性内存模型是一个理论参考模型。  </p>
+<img src="https://gitee.com/Jinondo/jinondo-imgs/raw/master/note_img/20210608133029.png" style="zoom:67%;" />
+
+
+
+<p>**JSR-133对旧内存模型的修补  **</p>
+<p>JSR-133对JDK 5之前的旧内存模型的修补主要有两个。</p>
+<ul>
+<li>增强volatile的内存语义。旧内存模型允许volatile变量与普通变量重排序。JSR-133严格限制volatile变量与普通变量的重排序，使volatile的写-读和锁的释放-获取具有相同的内存语义。</li>
+<li>增强final的内存语义。在旧内存模型中，多次读取同一个final变量的值可能会不相同。为此，JSR-133为final增加了两个重排序规则。在保证final引用不会从构造函数内逸出的情况下，final具有了初始化安全性。  </li>
+</ul>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://jinondo.github.io/2021/11/18/concurrent-art/" title="Java并发与Java内存模型" target="_blank" rel="external">https://jinondo.github.io/2021/11/18/concurrent-art/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/jinondo" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/cytAvatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/jinondo" target="_blank"><span class="text-dark">Jinondo</span><small class="ml-1x">Jinondo&#39;s Blog</small></a></h3>
+        <div>这写的是锤子博客orz</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    
+    <li class="next">
+      <a href="/2021/07/06/%E9%AB%98%E6%A0%A1%E5%81%A5%E5%BA%B7%E4%B8%8A%E6%8A%A5%E7%B3%BB%E7%BB%9F%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1%E9%87%8D%E7%82%B9/" title="高校健康上报系统后端设计重点"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn collapsed" data-toggle="collapse" href="#collapseToc" aria-expanded="false" title="Catalogue" role="button">
+        <span>[&nbsp;</span><span>Catalogue</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>$</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="qq,wechat,facebook,twitter" data-mobile-sites="qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>Maybe you could buy me a cup of coffee.</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.jpg" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open alipay app scan this qrcode, buy me a coffee!</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.jpg" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open wechat app scan this qrcode, buy me a coffee!</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> alipay</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> wechat payment</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/jinondo" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="https://www.weibo.com/5727886156" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://www.facebook.com/yt.chen.351/" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+        <li><a href="https://instagram.com" target="_blank" title="Instagram" data-toggle=tooltip data-placement=top><i class="icon icon-instagram"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+<!-- custom analytics part create by xiamo -->
+<script defer src="https://cdn1.lncld.net/static/js/av-min-1.2.1.js"></script>
+<script defer>
+AV.init({
+  appId: 'XgshDWV8pBqY7ntQXceMvbVJ-gzGzoHsz',
+  appKey: 'g763I13pUSI9eYkbFWnW4nrc'
+});
+
+function showTime(Counter) {
+	var query = new AV.Query(Counter);
+		var visitors= $('.leancloud_visitors');
+		query.greaterThanOrEqualTo("time", 0);		
+		query.find({
+			success: function(results) {
+				if (results.length == 0) {				
+					return;
+				}
+				var data = results;
+				visitors.each(function(){
+					var url = $(this).attr('id').trim();					
+					for (var i = 0; i < data.length; i++) {
+						var object = data[i];
+						var content = object.get('time');
+						var _url = object.get('url')
+						if(url == _url){
+							$(this).text(content);
+						}
+					}
+				})
+				
+			},
+			error: function(object, error) {
+				console.log("Error: " + error.code + " " + error.message);
+			}
+		});
+}
+
+function addCount(Counter) {
+	var Counter = AV.Object.extend("Counter");
+	url = $(".leancloud_visitors").attr('id').trim();
+	title = $(".leancloud_visitors").attr('data-flag-title').trim();
+	var query = new AV.Query(Counter);
+	query.equalTo("url", url);
+	query.find({
+		success: function(results) {
+			if (results.length > 0) {
+				var counter = results[0];
+				counter.fetchWhenSave(true);
+				counter.increment("time");
+				counter.save(null, {
+					success: function(counter) {
+						var content = counter.get('time');
+						$(document.getElementById(url)).text(content);
+					},
+					error: function(counter, error) {
+						console.log('Failed to save Visitor num, with error message: ' + error.message);
+					}
+				});
+			} else {
+				var newcounter = new Counter();
+				newcounter.set("title", title);
+				newcounter.set("url", url);
+				newcounter.set("time", 1);
+				newcounter.save(null, {
+					success: function(newcounter) {
+					    console.log("newcounter.get('time')="+newcounter.get('time'));
+						var content = newcounter.get('time');
+						$(document.getElementById(url)).text(content);
+					},
+					error: function(newcounter, error) {
+						console.log('Failed to create');
+					}
+				});
+			}
+		},
+		error: function(error) {
+			console.log('Error:' + error.code + " " + error.message);
+		}
+	});
+}
+$(function() {
+	var Counter = AV.Object.extend("Counter");
+	if ($('.leancloud_visitors').length == 1) {
+		addCount(Counter);
+	} else {
+		showTime(Counter);
+	}
+}); 
+</script>
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: 'XgshDWV8pBqY7ntQXceMvbVJ-gzGzoHsz',
+    appKey: 'g763I13pUSI9eYkbFWnW4nrc',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
